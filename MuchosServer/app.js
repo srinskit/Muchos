@@ -3,7 +3,6 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-
 const indexRouter = require('./routes/index');
 
 const app = express();
@@ -35,5 +34,55 @@ app.use(function (err, req, res) {
     res.status(err.status || 500);
     res.render('error');
 });
+
+const RachServer = require('./modules/RachServer/RachServer');
+const uuid_v1 = require('uuid/v1');
+
+let lobby = {};
+const services = {
+    '/version':
+        function (rach, on_err, on_result) {
+            on_result('0.0 dev');
+        },
+    '/lobby.create':
+        function (lobby, rach, on_err, on_result, lobby_name) {
+            try {
+                if (String(lobby_name).length === 0)
+                    on_err('invalid lobby name');
+            } catch (e) {
+                on_err(e.message || 'invalid lobby name');
+            }
+            let id = uuid_v1();
+            let lob = {
+                core: {
+                    id: id,
+                    name: lobby_name,
+                },
+                players: {},
+            };
+            lobby[id] = lob;
+            on_result(lob);
+        }.bind(null, lobby),
+    '/lobby.join':
+        function (lobby, rach, on_err, on_result, lobby_id, user) {
+            try {
+                if (String(lobby_id).length === 0)
+                    on_err('invalid lobby id');
+            } catch (e) {
+                on_err(e.message || 'invalid lobby name');
+            }
+            lobby[lobby_id].players[user.name] = user;
+            // rach.pub(`/${lobby_id}/player_join`, user);
+            on_result(lobby[lobby_id]);
+        }.bind(null, lobby),
+};
+const actions = {
+    authTest: function () {
+        return true;
+    },
+};
+
+const rachServer = new RachServer(actions, services, console);
+rachServer.start();
 
 module.exports = app;
