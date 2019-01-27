@@ -41,17 +41,41 @@ class Game extends Component {
             myHand: all_card,
             topCard: null,
             user: null,
+            lobbyCore: {}
         };
     }
 
+    componentDidMount() {
+        let rach = this.props.rach;
+        rach.service_call('/version', [],
+            (result) => {
+                this.consoleLog(`Server version ${result.result}`);
+            }, [],
+            (err) => {
+                this.consoleLog(err);
+            }, [],
+        );
+    }
+
+    componentWillUnmount() {
+    }
+
     onCommand(command) {
-        switch (command) {
-            case 'clear':
-                this.setState({commandLog: []});
-                break;
-            default:
-                this.consoleLog(command);
-                break;
+        if (command[0] !== '!') {
+            this.props.rach.pub(`/${this.state.lobbyCore.id}/chat`, {
+                user: this.state.user,
+                chat: command,
+            });
+        } else {
+            command = command.substr(2);
+            switch (command) {
+                case 'clear':
+                    this.setState({commandLog: []});
+                    break;
+                default:
+                    this.consoleLog(command);
+                    break;
+            }
         }
     }
 
@@ -78,9 +102,32 @@ class Game extends Component {
         this.setState({myHandOpen: false});
     }
 
+    onPlayerJoin(data) {
+        this.consoleLog(`__${data.data.name}__ joined lobby`);
+    }
+
+    onChat(data) {
+        let user = data.data.user;
+        let chat = data.data.chat;
+        this.consoleLog(`__${user.name}__: ${chat}`);
+    }
+
     avatarLoader(user) {
-        this.setState({user: user});
-        this.consoleLog(`${user.name} connected`);
+        let rach = this.props.rach;
+        this.consoleLog(`CORE.ID ${this.props.lobbyID}`);
+        rach.service_call('/lobby.join', [this.props.lobbyID, user],
+            (result) => {
+                let lobby = result.result;
+                this.consoleLog(`Joined lobby ${lobby.core.name}`);
+                rach.add_sub(`/${lobby.core.id}/player_join`, this.onPlayerJoin.bind(this), []);
+                rach.add_sub(`/${lobby.core.id}/chat`, this.onChat.bind(this), []);
+                rach.add_pub(`/${lobby.core.id}/chat`);
+                this.setState({user: user, lobbyCore: lobby.core});
+            }, [],
+            (err) => {
+                this.consoleLog(err);
+            }, [],
+        );
     }
 
     render() {
