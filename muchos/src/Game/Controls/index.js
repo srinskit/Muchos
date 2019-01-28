@@ -4,7 +4,8 @@ import {withStyles} from '@material-ui/core';
 import Paper from "@material-ui/core/Paper";
 import IconButton from "@material-ui/core/IconButton";
 import VideoGameIcon from '@material-ui/icons/VideogameAsset';
-import CardIcon from '@material-ui/icons/FileCopy';
+import InviteIcon from '@material-ui/icons/Share';
+import Tooltip from "@material-ui/core/es/Tooltip/Tooltip";
 
 
 const styles = theme => ({
@@ -28,15 +29,16 @@ class Controls extends Component {
         return (
             <Paper className={classes.controls} elevation={1}>
                 <div className={classes.innerControls}>
-                    <IconButton className={classes.margin}>
-                        <VideoGameIcon fontSize="large"/>
-                    </IconButton>
-                    <IconButton className={classes.margin} onClick={() => this.props.onControl('myHandOpen')}>
-                        <CardIcon fontSize="large"/>
-                    </IconButton>
-                    <IconButton className={classes.margin}>
-                        <VideoGameIcon fontSize="large"/>
-                    </IconButton>
+                    <Tooltip title='Hand' placement={'left'}>
+                        <IconButton className={classes.margin} onClick={() => this.props.onControl('myHandOpen')}>
+                            <VideoGameIcon fontSize="large"/>
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title='Invite' placement={'left'} onClick={() => this.props.onControl('invite')}>
+                        <IconButton className={classes.margin}>
+                            <InviteIcon fontSize="large"/>
+                        </IconButton>
+                    </Tooltip>
                 </div>
             </Paper>
         );

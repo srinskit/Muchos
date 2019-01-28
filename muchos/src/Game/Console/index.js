@@ -3,6 +3,9 @@ import * as PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core';
 import TextField from "@material-ui/core/TextField";
 import ReactMarkdown from "react-markdown";
+import ScrollableFeed from 'react-scrollable-feed'
+import Paper from "@material-ui/core/Paper";
+
 
 const styles = theme => ({
     Console: {
@@ -12,13 +15,16 @@ const styles = theme => ({
         flexDirection: 'column',
         justifyContent: 'flex-end',
     },
-    display: {},
     textField_FullWidth: {
         margin: theme.spacing.unit,
         width: `calc( 100% - 2*${theme.spacing.unit}px )`,
     },
     log: {
         margin: theme.spacing.unit,
+        wordWrap: 'break-word',
+    },
+    paperWrap: {
+        padding: '2px 10px',
     },
 });
 
@@ -45,17 +51,17 @@ class Console extends Component {
         const {classes} = this.props;
         return (
             <div className={classes.Console}>
-                <div className={classes.display}>
+                <ScrollableFeed className={classes.display}>
                     {
                         this.props.commandLog.map((log, i) => {
                             return (
                                 <div key={`log${i}`} className={classes.log}>
-                                    <ReactMarkdown source={log}/>
+                                    <Paper className={classes.paperWrap}><ReactMarkdown source={log}/></Paper>
                                 </div>
                             );
                         })
                     }
-                </div>
+                </ScrollableFeed>
                 <div>
                     <form onSubmit={this.handleCommandSubmit}>
                         <TextField

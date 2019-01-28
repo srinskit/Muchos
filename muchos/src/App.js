@@ -25,7 +25,7 @@ class App extends Component {
             joiningLobby: null,
             state: 'home',
         };
-        this.rach = new Rach('ws://10.53.98.196:8080', {username: 'test', password: 'pass', type: '1'});
+        this.rach = new Rach('ws://localhost:8080', {username: 'test', password: 'pass', type: '1'});
         // this.rach.enable_debug();
     }
 
@@ -66,6 +66,10 @@ class App extends Component {
         this.setState({joiningLobbyID: lobbyID, state: 'inGame'});
     }
 
+    onLobbyLeave() {
+        this.setState({createdLobby: null, joiningLobbyID: null, state: 'home'});
+    }
+
     getConnectedView() {
         switch (this.state.state) {
             case 'inGame':
@@ -73,6 +77,7 @@ class App extends Component {
                     <Game
                         rach={this.rach}
                         lobbyID={this.state.joiningLobbyID}
+                        onClose={this.onLobbyLeave.bind(this)}
                     />
                 );
             default:
