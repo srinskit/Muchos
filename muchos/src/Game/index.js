@@ -157,12 +157,12 @@ class Game extends Component {
         this.consoleLog(`${this.props.lobbyID}`);
         rach.service_call('/lobby.join', [this.props.lobbyID, user],
             (result) => {
-                let lobby = result.result;
-                this.consoleLog(`Joined lobby ${lobby.core.name}`);
-                rach.add_sub(`/lobby/${lobby.core.id}/player_event`, this.onPlayerJoin.bind(this), []);
-                rach.add_sub(`/lobby/${lobby.core.id}/chat`, this.onChat.bind(this), []);
-                rach.add_pub(`/lobby/${lobby.core.id}/chat`);
-                this.setState({user: user, lobbyCore: lobby.core});
+                let lobby_core = result.result;
+                this.consoleLog(`Joined lobby ${lobby_core.name}`);
+                rach.add_sub(`/lobby/${lobby_core.id}/player_event`, this.onPlayerJoin.bind(this), []);
+                rach.add_sub(`/lobby/${lobby_core.id}/chat`, this.onChat.bind(this), []);
+                rach.add_pub(`/lobby/${lobby_core.id}/chat`);
+                this.setState({user: user, lobbyCore: lobby_core});
             }, [],
             (err) => {
                 this.consoleLog(err);
