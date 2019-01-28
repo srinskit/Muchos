@@ -66,14 +66,36 @@ const services = {
     '/lobby.join':
         function (lobby, rach, on_err, on_result, lobby_id, user) {
             try {
-                if (String(lobby_id).length === 0)
-                    on_err('invalid lobby id');
+                if (String(lobby_id).length === 0 || lobby[lobby_id] == null)
+                    return on_err('invalid lobby id');
             } catch (e) {
-                on_err(e.message || 'invalid lobby name');
+                return on_err(e.message || 'invalid lobby id');
             }
             lobby[lobby_id].players[user.name] = user;
-            // rach.pub(`/${lobby_id}/player_join`, user);
+            rach.pub(`/lobby/${lobby_id}/player_event`, {event: 'joined', user: user});
             on_result(lobby[lobby_id]);
+        }.bind(null, lobby),
+    '/lobby.leave':
+        function (lobby, rach, on_err, on_result, lobby_id, user) {
+            try {
+                if (String(lobby_id).length === 0 || lobby[lobby_id] == null)
+                    return on_err('invalid lobby id');
+            } catch (e) {
+                return on_err(e.message || 'invalid lobby id');
+            }
+            delete lobby[lobby_id].players[user.name];
+            rach.pub(`/lobby/${lobby_id}/player_event`, {event: 'left', user: user});
+            on_result(lobby[lobby_id]);
+        }.bind(null, lobby),
+    '/lobby.get_mates':
+        function (lobby, rach, on_err, on_result, lobby_id) {
+            try {
+                if (String(lobby_id).length === 0 || lobby[lobby_id] == null)
+                    return on_err('invalid lobby id');
+            } catch (e) {
+                return on_err(e.message || 'invalid lobby id');
+            }
+            on_result(lobby[lobby_id].players);
         }.bind(null, lobby),
 };
 const actions = {
