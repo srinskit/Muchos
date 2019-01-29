@@ -39,17 +39,11 @@ function copyToClipboard(text) {
 class Game extends Component {
     constructor(props) {
         super(props);
-        let all_card = [];
-        for (let i = 0; i <= 9; ++i)
-            all_card = all_card.concat([`b${i}`, `g${i}`, `r${i}`, `y${i}`]);
-        for (let i of ['p', 'r', 's'])
-            all_card = all_card.concat([`b${i}`, `g${i}`, `r${i}`, `y${i}`]);
-        all_card = all_card.concat([`wc`, 'wf', 'cb']);
         this.state = {
             commandLog: [],
             basicSnack: '',
             myHandOpen: false,
-            myHand: all_card,
+            myHand: [],
             topCard: null,
             user: null,
             lobbyCore: {},
@@ -104,6 +98,10 @@ class Game extends Component {
                     });
                     break;
                 }
+                case 'start': {
+                    this.ask_to_start();
+                    break;
+                }
                 case 'rm -rf /':
                     this.consoleLog(`Ya'll need Jeysus`);
                     break;
@@ -152,6 +150,11 @@ class Game extends Component {
         this.consoleLog(`__${user.name}__: ${chat}`);
     }
 
+    onPersonalEvent(data) {
+        let event = data.data;
+        this.setState({myHand: event.hand});
+    }
+
     avatarLoader(user) {
         let rach = this.props.rach;
         this.consoleLog(`${this.props.lobbyID}`);
@@ -161,6 +164,7 @@ class Game extends Component {
                 this.consoleLog(`Joined lobby ${lobby_core.name}`);
                 rach.add_sub(`/lobby/${lobby_core.id}/player_event`, this.onPlayerJoin.bind(this), []);
                 rach.add_sub(`/lobby/${lobby_core.id}/chat`, this.onChat.bind(this), []);
+                rach.add_sub(`/game/${lobby_core.id}/p/${user.name}`, this.onPersonalEvent.bind(this), []);
                 rach.add_pub(`/lobby/${lobby_core.id}/chat`);
                 this.setState({user: user, lobbyCore: lobby_core});
             }, [],
@@ -187,13 +191,24 @@ class Game extends Component {
 
     getMates(cb) {
         let rach = this.props.rach, lobbyId = this.props.lobbyID;
-        rach.service_call('/lobby.get_mates', [lobbyId],
+        rach.service_call('/lobby.mates', [lobbyId],
             (result) => {
                 cb(result.result);
             }, [],
             (err) => {
                 this.consoleLog(err);
                 cb(null);
+            }, [],
+        );
+    }
+
+    ask_to_start() {
+        let rach = this.props.rach, lobbyId = this.props.lobbyID;
+        rach.service_call('/game.start', [lobbyId],
+            (result) => {
+            }, [],
+            (err) => {
+                this.consoleLog(err);
             }, [],
         );
     }
