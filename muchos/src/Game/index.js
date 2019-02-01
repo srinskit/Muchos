@@ -1,36 +1,36 @@
-import React, {Component} from 'react';
-import * as PropTypes from 'prop-types';
-import {withStyles} from '@material-ui/core';
-import Console from './Console';
-import Controls from './Controls';
-import MyHand from './MyHand';
+import React, {Component} from "react";
+import * as PropTypes from "prop-types";
+import {withStyles} from "@material-ui/core";
+import Console from "./Console";
+import Controls from "./Controls";
+import MyHand from "./MyHand";
 import AvatarMaker from "./AvatarMaker";
 import Snackbar from "@material-ui/core/Snackbar";
 
 const styles = theme => ({
     Game: {
-        height: '100%',
+        height: "100%",
     },
     consoleWrapper: {
-        position: 'absolute',
+        position: "absolute",
         top: 0,
         left: 0,
-        width: '20%',
-        height: '100%',
+        width: "20%",
+        height: "100%",
     },
     controlsWrapper: {
-        position: 'absolute',
+        position: "absolute",
         top: 0,
         right: 0,
         padding: 0,
-        height: '100%',
+        height: "100%",
     },
 });
 
 function copyToClipboard(text) {
     const dummy = document.createElement("input");
     document.body.appendChild(dummy);
-    dummy.setAttribute('value', text);
+    dummy.setAttribute("value", text);
     dummy.select();
     document.execCommand("copy");
     document.body.removeChild(dummy);
@@ -48,13 +48,14 @@ class Game extends Component {
             user: null,
             lobbyCore: {},
             lobbyPlayers: {},
+            turn: null,
         };
     }
 
     componentDidMount() {
         let rach = this.props.rach;
 
-        rach.service_call('/version', [],
+        rach.service_call("/version", [],
             (result) => {
                 this.consoleLog(`Server version ${result.result}`);
             }, [],
@@ -68,7 +69,7 @@ class Game extends Component {
     }
 
     onCommand(command) {
-        if (command[0] !== '!' || command[1] !== ' ') {
+        if (command[0] !== "!" || command[1] !== " ") {
             this.props.rach.pub(`/lobby/${this.state.lobbyCore.id}/chat`, {
                 user: this.state.user,
                 chat: command,
@@ -76,34 +77,34 @@ class Game extends Component {
         } else {
             command = command.substr(2);
             switch (command) {
-                case 'help': {
+                case "help": {
                     let help = '';
                     for (let key in this.helpDef)
                         help += `_${key}_: ${this.helpDef[key]}\n\n`;
                     this.consoleLog(help);
                     break;
                 }
-                case 'leave':
+                case "leave":
                     this.leaveLobby();
                     break;
-                case 'clear':
+                case "clear":
                     this.setState({commandLog: []});
                     break;
-                case 'mates': {
-                    this.getMates((mates) => {
+                case "players": {
+                    this.getPlayers((players) => {
                         let text = '';
-                        for (let key in mates)
-                            if (mates.hasOwnProperty(key))
-                                text += mates[key].name + '\n\n';
+                        for (let key in players)
+                            if (players.hasOwnProperty(key))
+                                text += players[key].name + "\n\n";
                         this.consoleLog(text);
                     });
                     break;
                 }
-                case 'start': {
+                case "start": {
                     this.ask_to_start();
                     break;
                 }
-                case 'rm -rf /':
+                case "rm -rf /":
                     this.consoleLog(`Ya'll need Jeysus`);
                     break;
                 default:
@@ -121,17 +122,17 @@ class Game extends Component {
 
     onControl(control) {
         switch (control) {
-            case 'myHandOpen':
+            case "myHandOpen":
                 this.setState({myHandOpen: true});
                 break;
-            case 'myHandClose':
+            case "myHandClose":
                 this.setState({myHandOpen: false});
                 break;
-            case 'invite':
+            case "invite":
                 copyToClipboard(this.state.lobbyCore.id);
-                this.setState({basicSnack: 'Lobby ID copied to clipboard'});
+                this.setState({basicSnack: "Lobby ID copied to clipboard"});
                 break;
-            case 'leaveLobby':
+            case "leaveLobby":
                 this.leaveLobby();
                 break;
             default:
@@ -155,9 +156,25 @@ class Game extends Component {
         this.consoleLog(`__${user.name}__: ${chat}`);
     }
 
-    onPersonalEvent(data) {
-        let event = data.data;
-        this.setState({myHand: event.hand});
+    onPrivate(data) {
+        let mData = data.data;
+        switch (mData.event) {
+            case "initHand":
+                this.setState({myHand: mData.hand});
+                break;
+            default:
+        }
+    }
+
+    onBroadcast(data) {
+        let mData = data.data;
+        switch (mData.event) {
+            case "turn":
+                this.consoleLog(`${mData["player"]}'s turn.`);
+                this.setState({turn: mData["player"]});
+                break;
+            default:
+        }
     }
 
     updatePlayerList(players) {
@@ -168,7 +185,7 @@ class Game extends Component {
         this.setState(prevState => ({
             lobbyPlayers: {
                 ...prevState.lobbyPlayers,
-                [player.name]: event === 'joined' ? player : undefined,
+                [player.name]: event === "joined" ? player : undefined,
             }
         }));
     }
@@ -176,16 +193,17 @@ class Game extends Component {
     avatarLoader(user) {
         let rach = this.props.rach;
         this.consoleLog(`${this.props.lobbyID}`);
-        rach.service_call('/lobby.join', [this.props.lobbyID, user],
+        rach.service_call("/lobby.join", [this.props.lobbyID, user],
             (result) => {
                 let lobby_core = result.result;
                 this.consoleLog(`Joined lobby ${lobby_core.name}`);
                 rach.add_sub(`/lobby/${lobby_core.id}/player_event`, this.onPlayerJoin.bind(this), []);
                 rach.add_sub(`/lobby/${lobby_core.id}/chat`, this.onChat.bind(this), []);
-                rach.add_sub(`/game/${lobby_core.id}/p/${user.name}`, this.onPersonalEvent.bind(this), []);
+                rach.add_sub(`/game/${lobby_core.id}/private/${user.name}`, this.onPrivate.bind(this), []);
+                rach.add_sub(`/game/${lobby_core.id}/broadcast`, this.onBroadcast.bind(this), []);
                 rach.add_pub(`/lobby/${lobby_core.id}/chat`);
                 this.setState({user: user, lobbyCore: lobby_core});
-                this.getMates((players) => {
+                this.getPlayers((players) => {
                     if (players)
                         this.updatePlayerList(players);
                 });
@@ -198,7 +216,7 @@ class Game extends Component {
 
     leaveLobby() {
         let rach = this.props.rach, lobbyId = this.props.lobbyID, user = this.state.user;
-        rach.service_call('/lobby.leave', [lobbyId, user],
+        rach.service_call("/lobby.leave", [lobbyId, user],
             (result) => {
                 rach.rm_all_sub();
                 rach.rm_all_pub();
@@ -211,9 +229,9 @@ class Game extends Component {
         );
     }
 
-    getMates(cb) {
+    getPlayers(cb) {
         let rach = this.props.rach, lobbyId = this.props.lobbyID;
-        rach.service_call('/lobby.mates', [lobbyId],
+        rach.service_call("/lobby.players", [lobbyId],
             (result) => {
                 cb(result.result);
             }, [],
@@ -226,7 +244,7 @@ class Game extends Component {
 
     ask_to_start() {
         let rach = this.props.rach, lobbyId = this.props.lobbyID;
-        rach.service_call('/game.start', [lobbyId],
+        rach.service_call("/game.start", [lobbyId],
             (result) => {
             }, [],
             (err) => {
@@ -247,7 +265,11 @@ class Game extends Component {
                     <Console commandLog={this.state.commandLog} onCommand={this.onCommand.bind(this)}/>
                 </div>
                 <div className={classes.controlsWrapper}>
-                    <Controls onControl={this.onControl.bind(this)} players={this.state.lobbyPlayers}/>
+                    <Controls
+                        onControl={this.onControl.bind(this)}
+                        players={this.state.lobbyPlayers}
+                        turn={this.state.turn}
+                    />
                 </div>
                 {
                     this.state.user == null ?
@@ -261,11 +283,11 @@ class Game extends Component {
                             topCard={this.state.topCard}
                             hand={this.state.myHand}
                             onCardSelection={this.onCardSelection.bind(this)}
-                            onClose={this.onControl.bind(this, 'myHandClose')}
+                            onClose={this.onControl.bind(this, "myHandClose")}
                         /> : null
                 }
                 <Snackbar
-                    anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+                    anchorOrigin={{vertical: "bottom", horizontal: "right"}}
                     open={this.state.basicSnack.length !== 0}
                     onClose={this.handleCloseSnack.bind(this)}
                     message={<span>{this.state.basicSnack}</span>}
@@ -275,32 +297,32 @@ class Game extends Component {
     }
 
     static getAsset(cardCode) {
-        let assetPath = 'uno_assets_2d/PNGs/small/';
-        assetPath += {b: 'blue_', g: 'green_', r: 'red_', y: 'yellow_', w: 'wild_', c: 'card_'}[cardCode[0]];
+        let assetPath = "uno_assets_2d/PNGs/small/";
+        assetPath += {b: "blue_", g: "green_", r: "red_", y: "yellow_", w: "wild_", c: "card_"}[cardCode[0]];
         if (!isNaN(Number(cardCode[1])))
             assetPath += cardCode[1];
         else
             assetPath += {
-                p: 'picker',
-                r: 'reverse',
-                s: 'skip',
-                b: 'back_alt',
-                c: 'color_changer',
-                f: 'pick_four'
+                p: "picker",
+                r: "reverse",
+                s: "skip",
+                b: "back_alt",
+                c: "color_changer",
+                f: "pick_four"
             }[cardCode[1]];
-        return assetPath + '.png';
+        return assetPath + ".png";
     }
 
     helpDef = {
-        'help': 'this help',
-        'clear': 'clear console log',
-        'leave': 'clean lobby exit',
-        'quit': 'clean game exit',
-        'create <name>': 'create lobby',
-        'join <id>': 'join lobby',
-        'start': 'start game',
-        'hand': 'show hand',
-        'mates': 'list players',
+        "help": "this help",
+        "clear": "clear console log",
+        "leave": "clean lobby exit",
+        "quit": "clean game exit",
+        "create <name>": "create lobby",
+        "join <id>": "join lobby",
+        "start": "start game",
+        "hand": "show hand",
+        "players": "list players",
     };
 }
 
