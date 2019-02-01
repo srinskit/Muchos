@@ -32,6 +32,12 @@ class MyHand extends Component {
         this.setState({[name]: event.target.checked});
     };
 
+    onCardSelection(cardCode) {
+        let top = this.props.topCard;
+        // Rule logic
+        this.props.onCardSelection(cardCode);
+    }
+
     render() {
         const {classes} = this.props;
         return (
@@ -64,7 +70,7 @@ class MyHand extends Component {
                             this.props.hand.map((cardCode, i) => {
                                 return (
                                     <Grid key={`mh${i}`} item xs={3}>
-                                        <Button onClick={this.props.onCardSelection.bind(this, cardCode)}>
+                                        <Button onClick={this.onCardSelection.bind(this, cardCode)}>
                                             <img src={this.props.assetGetter(cardCode)} alt={cardCode}/>
                                         </Button>
                                     </Grid>

@@ -64,6 +64,7 @@ const services = {
                     hand: {},
                     deck: null,
                     turn_order: null,
+                    move: null,
                 },
             };
             lobby[id] = lob;
@@ -121,6 +122,8 @@ const services = {
             shuffle(cards);
             for (let player of players)
                 hand[player] = cards.splice(0, 7);
+            lobby[lobby_id].game.move = {card: cards[0]};
+            cards.splice(0, 1);
             lobby[lobby_id].game.deck = cards;
             lobby[lobby_id].game.hand = hand;
             let turn_order = Object.keys(lobby[lobby_id].players);
@@ -133,6 +136,7 @@ const services = {
                         hand: hand[player]
                     });
             rach.pub(`/game/${lobby_id}/broadcast`, {event: "turn", player: turn_order[0]});
+            rach.pub(`/game/${lobby_id}/broadcast`, {event: "move", move: lobby[lobby_id].game.move});
             lobby[lobby_id].game.started = true;
             on_result("done");
         }.bind(null, lobby),
@@ -149,8 +153,11 @@ const services = {
                 return on_err("game not started yet");
             if (game.turn_order[0] !== user.name)
                 return on_err("not your turn yet");
-            if (!game.hand[user.name].includes(move))
+            if (!game.hand[user.name].includes(move.card))
                 return on_err("invalid move");
+            remove(game.hand[user.name], move.card);
+            lobby[lobby_id].game.move = move;
+            rach.pub(`/game/${lobby_id}/broadcast`, {event: "move", move: move});
         }.bind(null, lobby),
 };
 const actions = {
@@ -196,6 +203,12 @@ function rotate(arr, n) {
     n = n % arr.length;
     while (n-- > 0)
         arr.push(arr.shift());
+}
+
+function remove(arr, x) {
+    let i = arr.indexOf(x);
+    if (i >= 0)
+        arr.splice(i, 1);
 }
 
 const rachServer = new RachServer(actions, services, console);

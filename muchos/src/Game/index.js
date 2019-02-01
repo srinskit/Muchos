@@ -18,6 +18,10 @@ const styles = theme => ({
         width: "20%",
         height: "100%",
     },
+    gameWrapper: {
+        marginLeft: "20%",
+        padding: "50px",
+    },
     controlsWrapper: {
         position: "absolute",
         top: 0,
@@ -141,7 +145,21 @@ class Game extends Component {
     }
 
     onCardSelection(cardCode) {
-        this.setState({myHandOpen: false});
+        let rach = this.props.rach, user = this.state.user;
+        let move = {card: cardCode,};
+        rach.service_call("/game.move", [this.props.lobbyID, user, move],
+            (result) => {
+                this.setState({myHandOpen: false});
+                this.setState(prevState => {
+                    let myHand = prevState.myHand;
+                    Game.arrRemove(myHand, cardCode);
+                    return {myHand: myHand};
+                });
+            }, [],
+            (err) => {
+                this.consoleLog(err);
+            }, [],
+        );
     }
 
     onPlayerJoin(data) {
@@ -173,6 +191,9 @@ class Game extends Component {
                 this.consoleLog(`${mData["player"]}'s turn.`);
                 this.setState({turn: mData["player"]});
                 break;
+            case "move":
+                this.setState({topCard: mData["move"].card});
+                break;
             default:
         }
     }
@@ -192,7 +213,6 @@ class Game extends Component {
 
     avatarLoader(user) {
         let rach = this.props.rach;
-        this.consoleLog(`${this.props.lobbyID}`);
         rach.service_call("/lobby.join", [this.props.lobbyID, user],
             (result) => {
                 let lobby_core = result.result;
@@ -286,6 +306,14 @@ class Game extends Component {
                             onClose={this.onControl.bind(this, "myHandClose")}
                         /> : null
                 }
+                <div className={classes.gameWrapper}>
+                    {
+                        this.state.topCard !== null ?
+                            <div>
+                                <img src={Game.getAsset(this.state.topCard)} alt={this.state.topCard}/>
+                            </div> : null
+                    }
+                </div>
                 <Snackbar
                     anchorOrigin={{vertical: "bottom", horizontal: "right"}}
                     open={this.state.basicSnack.length !== 0}
@@ -311,6 +339,12 @@ class Game extends Component {
                 f: "pick_four"
             }[cardCode[1]];
         return assetPath + ".png";
+    }
+
+    static arrRemove(arr, x) {
+        let i = arr.indexOf(x);
+        if (i >= 0)
+            arr.splice(i, 1);
     }
 
     helpDef = {
