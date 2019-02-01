@@ -47,6 +47,7 @@ class Game extends Component {
             topCard: null,
             user: null,
             lobbyCore: {},
+            lobbyPlayers: {},
         };
     }
 
@@ -130,6 +131,9 @@ class Game extends Component {
                 copyToClipboard(this.state.lobbyCore.id);
                 this.setState({basicSnack: 'Lobby ID copied to clipboard'});
                 break;
+            case 'leaveLobby':
+                this.leaveLobby();
+                break;
             default:
                 break;
         }
@@ -141,6 +145,7 @@ class Game extends Component {
 
     onPlayerJoin(data) {
         let user = data.data.user, event = data.data.event;
+        this.updatePlayer(user, event);
         this.consoleLog(`__${user.name}__ ${event}.`);
     }
 
@@ -155,6 +160,19 @@ class Game extends Component {
         this.setState({myHand: event.hand});
     }
 
+    updatePlayerList(players) {
+        this.setState({lobbyPlayers: players});
+    }
+
+    updatePlayer(player, event) {
+        this.setState(prevState => ({
+            lobbyPlayers: {
+                ...prevState.lobbyPlayers,
+                [player.name]: event === 'joined' ? player : undefined,
+            }
+        }));
+    }
+
     avatarLoader(user) {
         let rach = this.props.rach;
         this.consoleLog(`${this.props.lobbyID}`);
@@ -167,6 +185,10 @@ class Game extends Component {
                 rach.add_sub(`/game/${lobby_core.id}/p/${user.name}`, this.onPersonalEvent.bind(this), []);
                 rach.add_pub(`/lobby/${lobby_core.id}/chat`);
                 this.setState({user: user, lobbyCore: lobby_core});
+                this.getMates((players) => {
+                    if (players)
+                        this.updatePlayerList(players);
+                });
             }, [],
             (err) => {
                 this.consoleLog(err);
@@ -225,7 +247,7 @@ class Game extends Component {
                     <Console commandLog={this.state.commandLog} onCommand={this.onCommand.bind(this)}/>
                 </div>
                 <div className={classes.controlsWrapper}>
-                    <Controls onControl={this.onControl.bind(this)}/>
+                    <Controls onControl={this.onControl.bind(this)} players={this.state.lobbyPlayers}/>
                 </div>
                 {
                     this.state.user == null ?
