@@ -65,6 +65,7 @@ const services = {
                     deck: null,
                     turn_order: null,
                     move: null,
+                    discard: [],
                 },
             };
             lobby[id] = lob;
@@ -146,18 +147,175 @@ const services = {
                 if (String(lobby_id).length === 0 || lobby[lobby_id] == null)
                     return on_err("invalid lobby id");
             } catch (e) {
-                return on_err(e.message || "invalid lobby id");
+                return on_err(e.message);
             }
-            let game = lobby[lobby_id].game;
+            let game = lobby[lobby_id].game, ret = "done";
             if (game.started !== true)
-                return on_err("game not started yet");
+                return on_err("game not started");
             if (game.turn_order[0] !== user.name)
-                return on_err("not your turn yet");
-            if (!game.hand[user.name].includes(move.card))
-                return on_err("invalid move");
-            remove(game.hand[user.name], move.card);
-            lobby[lobby_id].game.move = move;
-            rach.pub(`/game/${lobby_id}/broadcast`, {event: "move", move: move});
+                return on_err("not your turn");
+            // Game logic
+            if (move.type === "card") {
+                if (!game.hand[user.name].includes(move.card))
+                    return on_err("you do not have that card");
+                if (["b", "g", "r", "y"].includes(game.move.card[0])) {
+                    if (isNumber(game.move.card[1])) {
+                        move.balance = 0;
+                        if (game.move.card[0] === move.card[0]) {
+                            move.color = move.card[0];
+                            if (isNumber(move.card[1]))
+                                rotate(game.turn_order, 1);
+                            else if (move.card[1] === "s")
+                                rotate(game.turn_order, 2);
+                            else if (move.card[1] === "r")
+                                reverse(game.turn_order);
+                            else if (move.card[1] === "p") {
+                                move.balance = 2;
+                                rotate(game.turn_order, 1);
+                            }
+                        } else if (game.move.card[1] === move.card[1]) {
+                            move.color = move.card[0];
+                            rotate(game.turn_order, 1);
+                        } else if (move.card === "wc") {
+                            if (!["b", "g", "r", "y"].includes(move.color))
+                                return on_err("which color should we switch to?");
+                            rotate(game.turn_order, 1);
+                        } else if (move.card === "wf") {
+                            if (!["b", "g", "r", "y"].includes(move.color))
+                                return on_err("which color should we switch to?");
+                            move.balance = 4;
+                            rotate(game.turn_order, 1);
+                        } else
+                            return on_err("invalid move");
+                    } else if (game.move.card[1] === "s") {
+                        move.balance = 0;
+                        if (game.move.card[0] === move.card[0]) {
+                            move.color = move.card[0];
+                            if (isNumber(move.card[1]))
+                                rotate(game.turn_order, 1);
+                            else if (move.card[1] === "s")
+                                rotate(game.turn_order, 2);
+                            else if (move.card[1] === "r")
+                                reverse(game.turn_order);
+                            else if (move.card[1] === "p") {
+                                move.balance = 2;
+                                rotate(game.turn_order, 1);
+                            }
+                        } else if (move.card[1] === "s") {
+                            move.color = move.card[0];
+                            rotate(game.turn_order, 2);
+                        } else if (move.card[0] === "wc") {
+                            if (!["b", "g", "r", "y"].includes(move.color))
+                                return on_err("which color should we switch to?");
+                            rotate(game.turn_order, 1);
+                        } else if (move.card === "wf") {
+                            if (!["b", "g", "r", "y"].includes(move.color))
+                                return on_err("which color should we switch to?");
+                            move.balance = 4;
+                            rotate(game.turn_order, 1);
+                        } else
+                            return on_err("invalid move");
+                    } else if (game.move.card[1] === "r") {
+                        move.balance = 0;
+                        if (game.move.card[0] === move.card[0]) {
+                            move.color = move.card[0];
+                            if (isNumber(move.card[1]))
+                                rotate(game.turn_order, 1);
+                            else if (move.card[1] === "s")
+                                rotate(game.turn_order, 2);
+                            else if (move.card[1] === "r")
+                                reverse(game.turn_order);
+                            else if (move.card[1] === "p") {
+                                move.balance = 2;
+                                rotate(game.turn_order, 1);
+                            }
+                        } else if (move.card[1] === "r") {
+                            move.color = move.card[0];
+                            reverse(game.turn_order);
+                        } else if (move.card[0] === "wc") {
+                            if (!["b", "g", "r", "y"].includes(move.color))
+                                return on_err("which color should we switch to?");
+                            rotate(game.turn_order, 1);
+                        } else if (move.card === "wf") {
+                            if (!["b", "g", "r", "y"].includes(move.color))
+                                return on_err("which color should we switch to?");
+                            move.balance = 4;
+                            rotate(game.turn_order, 1);
+                        } else
+                            return on_err("invalid move");
+                    } else if (game.move.card[1] === "p") {
+                        if (move.card[1] === "p") {
+                            move.color = move.card[0];
+                            move.balance = game.move.balance + 2;
+                            rotate(game.turn_order, 1);
+                        } else
+                            return on_err("invalid move");
+                    }
+                } else if (game.move.card === "wc") {
+                    move.balance = 0;
+                    if (["b", "g", "r", "y"].includes(move.card[0])) {
+                        move.color = move.card[0];
+                        if (isNumber(move.card[1]))
+                            rotate(game.turn_order, 1);
+                        else if (move.card[1] === "s")
+                            rotate(game.turn_order, 2);
+                        else if (move.card[1] === "r")
+                            reverse(game.turn_order);
+                        else if (move.card[1] === "p") {
+                            move.balance = 2;
+                            rotate(game.turn_order, 1);
+                        }
+                    } else if (move.card === "wc") {
+                        if (!["b", "g", "r", "y"].includes(move.color))
+                            return on_err("which color should we switch to?");
+                        rotate(game.turn_order, 1);
+                    } else if (move.card === "wf") {
+                        if (!["b", "g", "r", "y"].includes(move.color))
+                            return on_err("which color should we switch to?");
+                        move.balance = 4;
+                        rotate(game.turn_order, 1);
+                    }
+                } else if (game.move.card === "wf") {
+                    if (move.card === "wf") {
+                        if (!["b", "g", "r", "y"].includes(move.color))
+                            return on_err("which color should we switch to?");
+                        move.balance = game.move.balance + 4;
+                        rotate(game.turn_order, 1);
+                    } else
+                        return on_err("invalid move");
+                }
+                remove(game.hand[user.name], move.card);
+            } else if (move.type === "draw") {
+                if (game.move.type === "draw")
+                    return on_err("can not draw again");
+                let n = game.move.balance === 0 ? 1 : game.move.balance;
+                if (game.deck.length < n) {
+                    shuffle(game.discard);
+                    game.deck = game.deck.concat(game.discard);
+                }
+                if (game.deck.length < n)
+                    console.log("deck length low");
+                move.balance = 0;
+                move.card = game.move.card;
+                move.color = game.move.color;
+                ret = game.deck.splice(0, n);
+            } else if (move.type === "pass") {
+                if (game.move.type !== "draw")
+                    return on_err("can not pass");
+                move.type = "card";
+                move.balance = game.move.balance;
+                move.card = game.move.card;
+                move.color = game.move.color;
+            } else
+                return on_err("invalid card type");
+            game.move = move;
+            rach.pub(`/game/${lobby_id}/broadcast`, {
+                event: "move",
+                move: game.move,
+                turn: user.name,
+                next_turn: game.turn_order[0],
+            });
+            return on_result(ret);
         }.bind(null, lobby),
 };
 const actions = {
@@ -205,10 +363,18 @@ function rotate(arr, n) {
         arr.push(arr.shift());
 }
 
+function reverse(arr) {
+    arr.reverse();
+}
+
 function remove(arr, x) {
     let i = arr.indexOf(x);
     if (i >= 0)
         arr.splice(i, 1);
+}
+
+function isNumber(x) {
+    return !isNaN(Number(x));
 }
 
 const rachServer = new RachServer(actions, services, console);
