@@ -42,7 +42,7 @@ let lobby = {};
 const services = {
     "/version":
         function (rach, on_err, on_result) {
-            on_result("0.0 dev");
+            on_result("0.0");
         },
     "/lobby.create":
         function (lobby, rach, on_err, on_result, lobby_name) {
@@ -61,11 +61,6 @@ const services = {
                 players: {},
                 game: {
                     started: false,
-                    hand: {},
-                    deck: null,
-                    turn_order: null,
-                    move: null,
-                    discard: [],
                 },
             };
             lobby[id] = lob;
@@ -113,32 +108,53 @@ const services = {
             } catch (e) {
                 return on_err(e.message || "invalid lobby id");
             }
-            if (lobby[lobby_id].game.started)
+            let game = lobby[lobby_id].game;
+            if (game.started)
                 return on_err("game in progress");
             let players = Object.keys(lobby[lobby_id].players), hand = {};
             if (players.length < 2) {
                 return on_err("not enough players");
             }
+            if (players.length > 5) {
+                return on_err("too many players");
+            }
             let cards = get_all_cards();
             shuffle(cards);
             for (let player of players)
                 hand[player] = cards.splice(0, 7);
-            lobby[lobby_id].game.move = {card: cards[0]};
-            cards.splice(0, 1);
-            lobby[lobby_id].game.deck = cards;
-            lobby[lobby_id].game.hand = hand;
+            let i;
+            for (i = 0; i < cards.length; ++i)
+                if (isNumber(cards[i][1]))
+                    break;
+            if (i === cards.length)
+                return on_err("golden rain. try again.");
+            game.move = {
+                type: "card",
+                card: cards[i],
+                color: cards[i][0],
+                balance: 0,
+            };
+            cards.splice(i, 1);
+            game.deck = cards;
+            game.hand = hand;
+            game.discard = [];
+            game.win_count = 0;
             let turn_order = Object.keys(lobby[lobby_id].players);
             shuffle(turn_order);
-            lobby[lobby_id].game.turn_order = turn_order;
+            game.turn_order = turn_order;
             for (let player of players)
                 rach.pub(`/game/${lobby_id}/private/${player}`,
                     {
                         event: "initHand",
                         hand: hand[player]
                     });
-            rach.pub(`/game/${lobby_id}/broadcast`, {event: "turn", player: turn_order[0]});
-            rach.pub(`/game/${lobby_id}/broadcast`, {event: "move", move: lobby[lobby_id].game.move});
-            lobby[lobby_id].game.started = true;
+            rach.pub(`/game/${lobby_id}/broadcast`, {
+                event: "move",
+                move: game.move,
+                turn: null,
+                next_turn: turn_order[0],
+            });
+            game.started = true;
             on_result("done");
         }.bind(null, lobby),
     "/game.move":
@@ -149,7 +165,7 @@ const services = {
             } catch (e) {
                 return on_err(e.message);
             }
-            let game = lobby[lobby_id].game, ret = "done";
+            let game = lobby[lobby_id].game, ret = [];
             if (game.started !== true)
                 return on_err("game not started");
             if (game.turn_order[0] !== user.name)
@@ -244,12 +260,38 @@ const services = {
                         } else
                             return on_err("invalid move");
                     } else if (game.move.card[1] === "p") {
-                        if (move.card[1] === "p") {
-                            move.color = move.card[0];
-                            move.balance = game.move.balance + 2;
-                            rotate(game.turn_order, 1);
-                        } else
-                            return on_err("invalid move");
+                        if (game.move.balance !== 0) {
+                            if (move.card[1] === "p") {
+                                move.color = move.card[0];
+                                move.balance = game.move.balance + 2;
+                                rotate(game.turn_order, 1);
+                            } else
+                                return on_err("invalid move");
+                        } else {
+                            if (move.card === "wc") {
+                                if (!["b", "g", "r", "y"].includes(move.color))
+                                    return on_err("which color should we switch to?");
+                                rotate(game.turn_order, 1);
+                            } else if (move.card === "wf") {
+                                if (!["b", "g", "r", "y"].includes(move.color))
+                                    return on_err("which color should we switch to?");
+                                move.balance = 4;
+                                rotate(game.turn_order, 1);
+                            } else if (game.move.color === move.card[0]) {
+                                move.color = move.card[0];
+                                if (isNumber(move.card[1]))
+                                    rotate(game.turn_order, 1);
+                                else if (move.card[1] === "s")
+                                    rotate(game.turn_order, 2);
+                                else if (move.card[1] === "r")
+                                    reverse(game.turn_order);
+                                else if (move.card[1] === "p") {
+                                    move.balance = 2;
+                                    rotate(game.turn_order, 1);
+                                }
+                            } else
+                                return on_err("invalid move");
+                        }
                     }
                 } else if (game.move.card === "wc") {
                     move.balance = 0;
@@ -276,13 +318,40 @@ const services = {
                         rotate(game.turn_order, 1);
                     }
                 } else if (game.move.card === "wf") {
-                    if (move.card === "wf") {
-                        if (!["b", "g", "r", "y"].includes(move.color))
-                            return on_err("which color should we switch to?");
-                        move.balance = game.move.balance + 4;
-                        rotate(game.turn_order, 1);
-                    } else
-                        return on_err("invalid move");
+                    move.balance = 0;
+                    if (game.move.balance !== 0) {
+                        if (move.card === "wf") {
+                            if (!["b", "g", "r", "y"].includes(move.color))
+                                return on_err("which color should we switch to?");
+                            move.balance = game.move.balance + 4;
+                            rotate(game.turn_order, 1);
+                        } else
+                            return on_err("invalid move");
+                    } else {
+                        if (move.card === "wc") {
+                            if (!["b", "g", "r", "y"].includes(move.color))
+                                return on_err("which color should we switch to?");
+                            rotate(game.turn_order, 1);
+                        } else if (move.card === "wf") {
+                            if (!["b", "g", "r", "y"].includes(move.color))
+                                return on_err("which color should we switch to?");
+                            move.balance = 4;
+                            rotate(game.turn_order, 1);
+                        } else if (game.move.color === move.card[0]) {
+                            move.color = move.card[0];
+                            if (isNumber(move.card[1]))
+                                rotate(game.turn_order, 1);
+                            else if (move.card[1] === "s")
+                                rotate(game.turn_order, 2);
+                            else if (move.card[1] === "r")
+                                reverse(game.turn_order);
+                            else if (move.card[1] === "p") {
+                                move.balance = 2;
+                                rotate(game.turn_order, 1);
+                            }
+                        } else
+                            return on_err("invalid move");
+                    }
                 }
                 remove(game.hand[user.name], move.card);
             } else if (move.type === "draw") {
@@ -296,9 +365,10 @@ const services = {
                 if (game.deck.length < n)
                     console.log("deck length low");
                 move.balance = 0;
-                move.card = game.move.card;
                 move.color = game.move.color;
+                move.card = game.move.card;
                 ret = game.deck.splice(0, n);
+                game.hand[user.name] = game.hand[user.name].concat(ret);
             } else if (move.type === "pass") {
                 if (game.move.type !== "draw")
                     return on_err("can not pass");
@@ -306,6 +376,7 @@ const services = {
                 move.balance = game.move.balance;
                 move.card = game.move.card;
                 move.color = game.move.color;
+                rotate(game.turn_order, 1);
             } else
                 return on_err("invalid card type");
             game.move = move;
@@ -315,6 +386,25 @@ const services = {
                 turn: user.name,
                 next_turn: game.turn_order[0],
             });
+            if (game.hand[user.name].length === 0) {
+                game.win_count++;
+                remove(game.turn_order, user.name);
+                rach.pub(`/game/${lobby_id}/broadcast`, {
+                    event: "win",
+                    player: user.name,
+                    place: game.win_count,
+                });
+                if (game.turn_order.length === 1) {
+                    game.win_count++;
+                    rach.pub(`/game/${lobby_id}/broadcast`, {
+                        event: "win",
+                        player: game.turn_order[0],
+                        place: game.win_count,
+                    });
+                    remove(game.turn_order, game.turn_order[0]);
+                    game.started = false;
+                }
+            }
             return on_result(ret);
         }.bind(null, lobby),
 };
