@@ -4,6 +4,7 @@ import {withStyles} from "@material-ui/core";
 import Console from "./Console";
 import Controls from "./Controls";
 import MyHand from "./MyHand";
+import ColorSelector from "./ColorSelector";
 import AvatarMaker from "./AvatarMaker";
 import Snackbar from "@material-ui/core/Snackbar";
 
@@ -53,6 +54,7 @@ class Game extends Component {
             lobbyCore: {},
             lobbyPlayers: {},
             turn: null,
+            color: "b",
         };
     }
 
@@ -132,12 +134,24 @@ class Game extends Component {
             case "myHandClose":
                 this.setState({myHandOpen: false});
                 break;
+            case "colorSelectorOpen":
+                this.setState({color: null});
+                break;
+            case "colorSelectorClose":
+                this.setState({color: "b"});
+                break;
             case "invite":
                 copyToClipboard(this.state.lobbyCore.id);
                 this.setState({basicSnack: "Lobby ID copied to clipboard"});
                 break;
             case "leaveLobby":
                 this.leaveLobby();
+                break;
+            case "passTurn":
+                this.onCardSelection("pass");
+                break;
+            case "drawCard":
+                this.onCardSelection("draw");
                 break;
             default:
                 break;
@@ -146,15 +160,35 @@ class Game extends Component {
 
     onCardSelection(cardCode) {
         let rach = this.props.rach, user = this.state.user;
-        let move = {card: cardCode,};
+        let move = {};
+        if (cardCode === "draw") {
+            move.type = cardCode;
+        } else if (cardCode === "pass") {
+            move.type = cardCode;
+        } else {
+            move.type = "card";
+            move.card = cardCode;
+            if (cardCode[0] === "w")
+                move.color = this.state.color;
+            console.log(move);
+        }
         rach.service_call("/game.move", [this.props.lobbyID, user, move],
             (result) => {
-                this.setState({myHandOpen: false});
-                this.setState(prevState => {
-                    let myHand = prevState.myHand;
-                    Game.arrRemove(myHand, cardCode);
-                    return {myHand: myHand};
-                });
+                let res = result.result;
+                if (res.length === 0) {
+                    this.setState({myHandOpen: false});
+                    this.setState(prevState => {
+                        let myHand = prevState.myHand;
+                        Game.arrRemove(myHand, cardCode);
+                        return {myHand: myHand};
+                    });
+                } else {
+                    this.setState(prevState => {
+                        return {
+                            myHand: prevState.myHand.concat(res)
+                        };
+                    });
+                }
             }, [],
             (err) => {
                 this.consoleLog(err);
@@ -187,12 +221,12 @@ class Game extends Component {
     onBroadcast(data) {
         let mData = data.data;
         switch (mData.event) {
-            case "turn":
-                this.consoleLog(`${mData["player"]}'s turn.`);
-                this.setState({turn: mData["player"]});
-                break;
             case "move":
-                this.setState({topCard: mData["move"].card});
+                this.consoleLog(`${mData["next_turn"]}'s turn.`);
+                this.setState({topCard: mData["move"].card, turn: mData["next_turn"]});
+                break;
+            case "win":
+                this.consoleLog(`${mData["player"]} won place ${mData["place"]}`);
                 break;
             default:
         }
@@ -277,6 +311,10 @@ class Game extends Component {
         this.setState({basicSnack: ''});
     }
 
+    onColorSelection(color) {
+        this.setState({color: color});
+    }
+
     render() {
         const {classes} = this.props;
         return (
@@ -304,6 +342,13 @@ class Game extends Component {
                             hand={this.state.myHand}
                             onCardSelection={this.onCardSelection.bind(this)}
                             onClose={this.onControl.bind(this, "myHandClose")}
+                        /> : null
+                }
+                {
+                    this.state.color == null ?
+                        <ColorSelector
+                            callback={this.onColorSelection.bind(this)}
+                            onClose={this.onControl.bind(this, "colorSelectorClose")}
                         /> : null
                 }
                 <div className={classes.gameWrapper}>
@@ -335,6 +380,7 @@ class Game extends Component {
                 r: "reverse",
                 s: "skip",
                 b: "back_alt",
+                d: "back",
                 c: "color_changer",
                 f: "pick_four"
             }[cardCode[1]];

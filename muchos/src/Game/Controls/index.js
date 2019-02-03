@@ -4,6 +4,9 @@ import {withStyles} from "@material-ui/core";
 import Paper from "@material-ui/core/Paper";
 import IconButton from "@material-ui/core/IconButton";
 import VideoGameIcon from "@material-ui/icons/VideogameAsset";
+import DrawCardIcon from "@material-ui/icons/NoteAdd";
+import PassTurnIcon from "@material-ui/icons/SkipNext";
+import ColorSelectorIcon from "@material-ui/icons/ColorLens";
 import InviteIcon from "@material-ui/icons/Share";
 import LeaveLobbyIcon from "@material-ui/icons/ExitToApp";
 import Tooltip from "@material-ui/core/es/Tooltip/Tooltip";
@@ -66,6 +69,22 @@ class Controls extends Component {
                     <Tooltip title="Hand" placement={"left"}>
                         <IconButton className={classes.margin} onClick={() => this.props.onControl("myHandOpen")}>
                             <VideoGameIcon fontSize="large"/>
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Draw card" placement={"left"}>
+                        <IconButton className={classes.margin} onClick={() => this.props.onControl("drawCard")}>
+                            <DrawCardIcon fontSize="large"/>
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Pass turn" placement={"left"}>
+                        <IconButton className={classes.margin} onClick={() => this.props.onControl("passTurn")}>
+                            <PassTurnIcon fontSize="large"/>
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Set color" placement={"left"}>
+                        <IconButton className={classes.margin}
+                                    onClick={() => this.props.onControl("colorSelectorOpen")}>
+                            <ColorSelectorIcon fontSize="large"/>
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Invite" placement={"left"} onClick={() => this.props.onControl("invite")}>
