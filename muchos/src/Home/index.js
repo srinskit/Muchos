@@ -1,31 +1,30 @@
-import React, {Component} from 'react';
-import * as PropTypes from 'prop-types';
-import {withStyles} from '@material-ui/core';
+import React, {Component} from "react";
+import * as PropTypes from "prop-types";
+import {withStyles} from "@material-ui/core";
 import Paper from "@material-ui/core/Paper";
 import IconButton from "@material-ui/core/IconButton";
 import InputBase from "@material-ui/core/InputBase";
 import Divider from "@material-ui/core/Divider";
-import CreateIcon from '@material-ui/icons/FiberNew';
-import CopyIcon from '@material-ui/icons/FileCopy';
-import PlayIcon from '@material-ui/icons/VideogameAsset';
+import CreateIcon from "@material-ui/icons/FiberNew";
+import CopyIcon from "@material-ui/icons/FileCopy";
+import PlayIcon from "@material-ui/icons/VideogameAsset";
 import Tooltip from "@material-ui/core/Tooltip";
 import Typography from "@material-ui/core/es/Typography/Typography";
 
 const styles = theme => ({
     home: {
-        height: '100%',
     },
     centeredDiv: {
-        display: 'flex',
-        width: '100%',
-        justifyContent: 'center',
-        padding: '20px 0',
+        display: "flex",
+        width: "100%",
+        justifyContent: "center",
+        padding: "20px 0",
     },
     paperWrap: {
-        marginLeft: '10px',
-        padding: '2px 4px',
-        display: 'flex',
-        alignItems: 'center',
+        marginLeft: "10px",
+        padding: "2px 4px",
+        display: "flex",
+        alignItems: "center",
         width: 400,
     },
     inputWrap: {
@@ -45,7 +44,7 @@ const styles = theme => ({
 function copyToClipboard(text) {
     const dummy = document.createElement("input");
     document.body.appendChild(dummy);
-    dummy.setAttribute('value', text);
+    dummy.setAttribute("value", text);
     dummy.select();
     document.execCommand("copy");
     document.body.removeChild(dummy);
@@ -79,7 +78,7 @@ class Home extends Component {
                             className={classes.inputWrap}
                             placeholder="Lobby name"
                             value={this.state.lobbyName}
-                            onChange={this.handleChange('lobbyName')}
+                            onChange={this.handleChange("lobbyName")}
                         />
                         <Divider className={classes.divider}/>
                         <Tooltip title="Create lobby">
@@ -118,7 +117,7 @@ class Home extends Component {
                             className={classes.inputWrap}
                             placeholder="Lobby ID"
                             value={this.state.lobbyID}
-                            onChange={this.handleChange('lobbyID')}
+                            onChange={this.handleChange("lobbyID")}
                         />
                         <Divider className={classes.divider}/>
                         <Tooltip title="Join lobby">
@@ -141,4 +140,4 @@ Home.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(Home);
+export default withStyles(styles, {withTheme: true})(Home);

@@ -1,19 +1,19 @@
-import React, {Component} from 'react';
-import * as PropTypes from 'prop-types';
-import {withStyles} from '@material-ui/core';
+import React, {Component} from "react";
+import * as PropTypes from "prop-types";
+import {withStyles} from "@material-ui/core";
 import TextField from "@material-ui/core/TextField";
 import ReactMarkdown from "react-markdown";
-import ScrollableFeed from 'react-scrollable-feed'
+import ScrollableFeed from "react-scrollable-feed"
 import Paper from "@material-ui/core/Paper";
 
 
 const styles = theme => ({
     Console: {
-        height: '100%',
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-end',
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-end",
     },
     textField_FullWidth: {
         margin: theme.spacing.unit,
@@ -21,10 +21,10 @@ const styles = theme => ({
     },
     log: {
         margin: theme.spacing.unit,
-        wordWrap: 'break-word',
+        wordWrap: "break-word",
     },
     paperWrap: {
-        padding: '2px 10px',
+        padding: "2px 10px",
     },
 });
 
@@ -69,7 +69,7 @@ class Console extends Component {
                             placeholder="Console"
                             margin="normal"
                             value={this.state.commandText}
-                            onChange={this.handleChange('commandText')}
+                            onChange={this.handleChange("commandText")}
                         />
                     </form>
                 </div>

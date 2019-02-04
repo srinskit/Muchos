@@ -1,19 +1,25 @@
-import React, {Component} from 'react';
-import * as PropTypes from 'prop-types';
-import {withStyles} from '@material-ui/core';
-import Home from './Home';
-import Game from './Game';
-import Rach from './RachJs/RachJs';
+import React, {Component} from "react";
+import * as PropTypes from "prop-types";
+import {withStyles} from "@material-ui/core";
+import {MuiThemeProvider, createMuiTheme} from "@material-ui/core/styles";
+import Home from "./Home";
+import Game from "./Game";
+import Rach from "./RachJs/RachJs";
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import DialogActions from "@material-ui/core/DialogActions";
+import CssBaseline from "@material-ui/core/CssBaseline";
+
+const theme = createMuiTheme({
+    palette: {
+        type: "dark",
+    },
+});
 
 const styles = theme => ({
-    App: {
-        height: '100%',
-    },
+    App: {},
 });
 
 class App extends Component {
@@ -23,9 +29,9 @@ class App extends Component {
             connectedToRach: false,
             createdLobby: null,
             joiningLobby: null,
-            state: 'home',
+            state: "home",
         };
-        this.rach = new Rach('ws://localhost:8080', {username: 'test', password: 'pass', type: '1'});
+        this.rach = new Rach("ws://localhost:8080", {username: "test", password: "pass", type: "1"});
         // this.rach.enable_debug();
     }
 
@@ -42,16 +48,21 @@ class App extends Component {
     render() {
         const {classes} = this.props;
         return (
-            <div className={classes.App}>
-                {!this.state.connectedToRach ? this.getRachStatusDialog("Connecting to server...") : null}
-                {this.state.connectedToRach ? this.getConnectedView() : null}
-            </div>
+            <MuiThemeProvider theme={theme}>
+                <React.Fragment>
+                    <CssBaseline/>
+                    <div className={classes.App}>
+                        {!this.state.connectedToRach ? this.getRachStatusDialog("Connecting to server...") : null}
+                        {this.state.connectedToRach ? this.getConnectedView() : null}
+                    </div>
+                </React.Fragment>
+            </MuiThemeProvider>
         );
     }
 
     createLobby(lobbyName) {
         if (lobbyName.length === 0) return;
-        this.rach.service_call('/lobby.create', [lobbyName],
+        this.rach.service_call("/lobby.create", [lobbyName],
             (result) => {
                 this.setState({createdLobby: result.result});
             }, [],
@@ -63,16 +74,16 @@ class App extends Component {
 
     joinLobby(lobbyID) {
         if (lobbyID.length === 0) return;
-        this.setState({joiningLobbyID: lobbyID, state: 'inGame'});
+        this.setState({joiningLobbyID: lobbyID, state: "inGame"});
     }
 
     onLobbyLeave() {
-        this.setState({createdLobby: null, joiningLobbyID: null, state: 'home'});
+        this.setState({createdLobby: null, joiningLobbyID: null, state: "home"});
     }
 
     getConnectedView() {
         switch (this.state.state) {
-            case 'inGame':
+            case "inGame":
                 return (
                     <Game
                         rach={this.rach}
@@ -110,4 +121,4 @@ App.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(App);
+export default withStyles(styles, {withTheme: true})(App);

@@ -1,6 +1,6 @@
-import React, {Component} from 'react';
-import * as PropTypes from 'prop-types';
-import {withStyles} from '@material-ui/core';
+import React, {Component} from "react";
+import * as PropTypes from "prop-types";
+import {withStyles} from "@material-ui/core";
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/es/DialogContent/DialogContent";

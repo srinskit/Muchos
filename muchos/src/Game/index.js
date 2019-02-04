@@ -360,7 +360,7 @@ class Game extends Component {
                     }
                 </div>
                 <Snackbar
-                    anchorOrigin={{vertical: "bottom", horizontal: "right"}}
+                    anchorOrigin={{vertical: "bottom", horizontal: "center"}}
                     open={this.state.basicSnack.length !== 0}
                     onClose={this.handleCloseSnack.bind(this)}
                     message={<span>{this.state.basicSnack}</span>}
