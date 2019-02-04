@@ -11,6 +11,8 @@ import InviteIcon from "@material-ui/icons/Share";
 import LeaveLobbyIcon from "@material-ui/icons/ExitToApp";
 import Tooltip from "@material-ui/core/es/Tooltip/Tooltip";
 import classNames from "classnames";
+import Badge from "@material-ui/core/Badge";
+import Typography from "@material-ui/core/Typography";
 
 const styles = theme => ({
     controls: {
@@ -36,8 +38,20 @@ const styles = theme => ({
         display: "flex",
         justifyContent: "center",
     },
-    greenBorder: {
-        border: "solid 3px green",
+    myTurn: {
+        backgroundColor: "#4caf50",
+    },
+    b: {
+        color: "#2196f3",
+    },
+    g: {
+        color: "#4caf50",
+    },
+    r: {
+        color: "#f44336",
+    },
+    y: {
+        color: "#ffeb3b",
     },
 });
 
@@ -55,9 +69,11 @@ class Controls extends Component {
                                     <Tooltip key={`ctrl_ply_${i}`} title={name} placement={"left"}>
                                         <Paper className={classNames({
                                             [classes.playerPaper]: true,
-                                            [classes.greenBorder]: this.props.turn === user.name
+                                            [classes.myTurn]: this.props.turn === user.name
                                         })}>
-                                            {user.name[0].toUpperCase()}
+                                            <Typography variant={"h6"}>
+                                                {user.name[0].toUpperCase()}
+                                            </Typography>
                                         </Paper>
                                     </Tooltip>
                                 );
@@ -67,24 +83,36 @@ class Controls extends Component {
                 </div>
                 <div className={classes.innerControls}>
                     <Tooltip title="Hand" placement={"left"}>
-                        <IconButton className={classes.margin} onClick={() => this.props.onControl("myHandOpen")}>
+                        <IconButton
+                            className={classNames({
+                                [classes[this.props.color || "b"]]: this.props.color != null,
+                                [classes.margin]: true
+                            })}
+                            onClick={() => this.props.onControl("myHandOpen")}>
                             <VideoGameIcon fontSize="large"/>
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Set color" placement={"left"}>
+                        <IconButton
+                            className={classNames({
+                                [classes[this.props.myColor || "b"]]: this.props.myColor != null,
+                                [classes.margin]: true
+                            })}
+                            onClick={() => this.props.onControl("colorSelectorOpen")}
+                        >
+                            <ColorSelectorIcon fontSize="large"/>
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Draw card" placement={"left"}>
                         <IconButton className={classes.margin} onClick={() => this.props.onControl("drawCard")}>
-                            <DrawCardIcon fontSize="large"/>
+                            <Badge badgeContent={this.props.balance} color="secondary">
+                                <DrawCardIcon fontSize="large"/>
+                            </Badge>
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Pass turn" placement={"left"}>
                         <IconButton className={classes.margin} onClick={() => this.props.onControl("passTurn")}>
                             <PassTurnIcon fontSize="large"/>
-                        </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Set color" placement={"left"}>
-                        <IconButton className={classes.margin}
-                                    onClick={() => this.props.onControl("colorSelectorOpen")}>
-                            <ColorSelectorIcon fontSize="large"/>
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Invite" placement={"left"} onClick={() => this.props.onControl("invite")}>
@@ -108,4 +136,4 @@ Controls.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(Controls);
+export default withStyles(styles, {withTheme: true})(Controls);

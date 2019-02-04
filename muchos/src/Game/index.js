@@ -7,6 +7,10 @@ import MyHand from "./MyHand";
 import ColorSelector from "./ColorSelector";
 import AvatarMaker from "./AvatarMaker";
 import Snackbar from "@material-ui/core/Snackbar";
+import ErrorIcon from '@material-ui/icons/Error';
+import CheckCircleIcon from '@material-ui/icons/CheckCircle';
+import InfoIcon from '@material-ui/icons/Info';
+import green from "@material-ui/core/es/colors/green";
 
 const styles = theme => ({
     Game: {
@@ -30,6 +34,24 @@ const styles = theme => ({
         padding: 0,
         height: "100%",
     },
+    message: {
+        display: 'flex',
+        alignItems: 'center',
+    },
+    snackIcon: {
+        fontSize: 20,
+        opacity: 0.9,
+        marginRight: theme.spacing.unit,
+    },
+    success: {
+        // backgroundColor: green[600],
+    },
+    error: {
+        // background: theme.palette.error.dark,
+    },
+    info: {
+        // background: theme.palette.primary.dark,
+    },
 });
 
 function copyToClipboard(text) {
@@ -46,15 +68,15 @@ class Game extends Component {
         super(props);
         this.state = {
             commandLog: [],
-            basicSnack: '',
+            basicSnack: "", errorSnack: "", successSnack: "",
             myHandOpen: false,
             myHand: [],
             topCard: null,
             user: null,
             lobbyCore: {},
             lobbyPlayers: {},
-            turn: null,
-            color: "b",
+            myColor: "b",
+            turn: null, balance: 0, color: null,
         };
     }
 
@@ -135,10 +157,10 @@ class Game extends Component {
                 this.setState({myHandOpen: false});
                 break;
             case "colorSelectorOpen":
-                this.setState({color: null});
+                this.setState({myColor: null});
                 break;
             case "colorSelectorClose":
-                this.setState({color: "b"});
+                this.setState({myColor: "b"});
                 break;
             case "invite":
                 copyToClipboard(this.state.lobbyCore.id);
@@ -169,8 +191,7 @@ class Game extends Component {
             move.type = "card";
             move.card = cardCode;
             if (cardCode[0] === "w")
-                move.color = this.state.color;
-            console.log(move);
+                move.color = this.state.myColor;
         }
         rach.service_call("/game.move", [this.props.lobbyID, user, move],
             (result) => {
@@ -185,13 +206,14 @@ class Game extends Component {
                 } else {
                     this.setState(prevState => {
                         return {
-                            myHand: prevState.myHand.concat(res)
+                            myHand: prevState.myHand.concat(res),
+                            balance: 0,
                         };
                     });
                 }
             }, [],
             (err) => {
-                this.consoleLog(err);
+                this.setState({errorSnack: err.substr(15)});
             }, [],
         );
     }
@@ -222,8 +244,12 @@ class Game extends Component {
         let mData = data.data;
         switch (mData.event) {
             case "move":
-                this.consoleLog(`${mData["next_turn"]}'s turn.`);
-                this.setState({topCard: mData["move"].card, turn: mData["next_turn"]});
+                this.setState({
+                    topCard: mData["move"].card,
+                    turn: mData["next_turn"],
+                    balance: mData["next_turn"] === this.state.user.name ? (mData["move"].balance === 0 ? 1 : mData["move"].balance) : 0,
+                    color: mData["next_turn"] === this.state.user.name ? mData["move"].color : null,
+                });
                 break;
             case "win":
                 this.consoleLog(`${mData["player"]} won place ${mData["place"]}`);
@@ -263,7 +289,7 @@ class Game extends Component {
                 });
             }, [],
             (err) => {
-                this.consoleLog(err);
+                this.setState({errorSnack: err.substr(15)});
             }, [],
         );
     }
@@ -302,17 +328,17 @@ class Game extends Component {
             (result) => {
             }, [],
             (err) => {
-                this.consoleLog(err);
+                this.setState({errorSnack: err.substr(15)});
             }, [],
         );
     }
 
     handleCloseSnack() {
-        this.setState({basicSnack: ''});
+        this.setState({basicSnack: "", errorSnack: "", successSnack: ""});
     }
 
     onColorSelection(color) {
-        this.setState({color: color});
+        this.setState({myColor: color});
     }
 
     render() {
@@ -327,6 +353,9 @@ class Game extends Component {
                         onControl={this.onControl.bind(this)}
                         players={this.state.lobbyPlayers}
                         turn={this.state.turn}
+                        myColor={this.state.myColor}
+                        color={this.state.color}
+                        balance={this.state.balance}
                     />
                 </div>
                 {
@@ -345,7 +374,7 @@ class Game extends Component {
                         /> : null
                 }
                 {
-                    this.state.color == null ?
+                    this.state.myColor == null ?
                         <ColorSelector
                             callback={this.onColorSelection.bind(this)}
                             onClose={this.onControl.bind(this, "colorSelectorClose")}
@@ -363,7 +392,34 @@ class Game extends Component {
                     anchorOrigin={{vertical: "bottom", horizontal: "center"}}
                     open={this.state.basicSnack.length !== 0}
                     onClose={this.handleCloseSnack.bind(this)}
-                    message={<span>{this.state.basicSnack}</span>}
+                    className={classes.info}
+                    message={
+                        <span className={classes.message}>
+                            <InfoIcon className={classes.snackIcon}/>{this.state.basicSnack}
+                        </span>
+                    }
+                />
+                <Snackbar
+                    anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+                    open={this.state.errorSnack.length !== 0}
+                    onClose={this.handleCloseSnack.bind(this)}
+                    className={classes.error}
+                    message={
+                        <span className={classes.message}>
+                            <ErrorIcon className={classes.snackIcon}/>{this.state.errorSnack}
+                        </span>
+                    }
+                />
+                <Snackbar
+                    anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+                    open={this.state.successSnack.length !== 0}
+                    onClose={this.handleCloseSnack.bind(this)}
+                    className={classes.success}
+                    message={
+                        <span className={classes.message}>
+                            <CheckCircleIcon className={classes.snackIcon}/>{this.state.successSnack}
+                        </span>
+                    }
                 />
             </div>
         );
@@ -411,4 +467,4 @@ Game.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(Game);
+export default withStyles(styles, {withTheme: true})(Game);
