@@ -48,4 +48,4 @@ MyHand.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(MyHand);
+export default withStyles(styles, {withTheme: true})(MyHand);

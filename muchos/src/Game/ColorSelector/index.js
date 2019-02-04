@@ -66,4 +66,4 @@ ColorSelector.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(ColorSelector);
+export default withStyles(styles, {withTheme: true})(ColorSelector);

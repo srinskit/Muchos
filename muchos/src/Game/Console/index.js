@@ -83,4 +83,4 @@ Console.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(Console);
+export default withStyles(styles, {withTheme: true})(Console);

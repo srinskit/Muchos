@@ -74,4 +74,4 @@ AvatarMaker.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(AvatarMaker);
+export default withStyles(styles, {withTheme: true})(AvatarMaker);
