@@ -387,6 +387,7 @@ const services = {
                 event: "move",
                 move: game.move,
                 turn: user.name,
+                cardCount: game.hand[user.name].length,
                 next_turn: game.turn_order[0],
             });
             if (game.hand[user.name].length === 0) {

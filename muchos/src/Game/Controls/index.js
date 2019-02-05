@@ -66,12 +66,14 @@ class Controls extends Component {
                             if (user)
                                 return (
                                     <Tooltip key={`ctrl_ply_${i}`} title={name} placement={"left"}>
-                                        <Avatar className={classNames({
-                                            [classes.avatar]: true,
-                                            [classes.myTurn]: this.props.turn === user.name
-                                        })}>
-                                            {user.name[0].toUpperCase()}
-                                        </Avatar>
+                                        <Badge className={classes.avatar}
+                                               badgeContent={this.props.cardCount[user.name] || 0} color="secondary">
+                                            <Avatar className={classNames({
+                                                [classes.myTurn]: this.props.turn === user.name
+                                            })}>
+                                                {user.name[0].toUpperCase()}
+                                            </Avatar>
+                                        </Badge>
                                     </Tooltip>
                                 );
                             return null;

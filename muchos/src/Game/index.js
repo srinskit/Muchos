@@ -76,7 +76,7 @@ class Game extends Component {
             lobbyCore: {},
             lobbyPlayers: {},
             myColor: "b",
-            turn: null, balance: 0, color: null,
+            turn: null, balance: 0, color: null, cardCount: {},
         };
     }
 
@@ -233,9 +233,20 @@ class Game extends Component {
     onPrivate(data) {
         let mData = data.data;
         switch (mData.event) {
-            case "initHand":
-                this.setState({myHand: mData.hand});
+            case "initHand": {
+                this.setState(prevState => {
+                    let cardCount = {};
+                    for (let player in prevState.lobbyPlayers)
+                        if (prevState.lobbyPlayers.hasOwnProperty(player))
+                            cardCount[player] = 7;
+                    return {
+                        ...prevState,
+                        myHand: mData.hand,
+                        cardCount: cardCount,
+                    }
+                });
                 break;
+            }
             default:
         }
     }
@@ -244,13 +255,14 @@ class Game extends Component {
         let mData = data.data;
         switch (mData.event) {
             case "move":
-                this.setState({
+                this.setState(prevState => ({
                     topCard: mData["move"].card,
                     turn: mData["next_turn"],
                     balance: mData["next_turn"] === this.state.user.name ? (mData["move"].balance === 0 ? 1 : mData["move"].balance) : 0,
                     color: mData["next_turn"] === this.state.user.name ? mData["move"].color : null,
                     infoSnack: mData["next_turn"] === this.state.user.name ? "Your turn" : "",
-                });
+                    cardCount: {...prevState.cardCount, [mData["turn"]]: mData["cardCount"]},
+                }));
                 break;
             case "win":
                 this.consoleLog(`${mData["player"]} won place ${mData["place"]}`);
@@ -357,6 +369,7 @@ class Game extends Component {
                         myColor={this.state.myColor}
                         color={this.state.color}
                         balance={this.state.balance}
+                        cardCount={this.state.cardCount}
                     />
                 </div>
                 {
