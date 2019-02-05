@@ -297,7 +297,7 @@ const services = {
                     }
                 } else if (game.move.card === "wc") {
                     move.balance = 0;
-                    if (["b", "g", "r", "y"].includes(move.card[0])) {
+                    if (move.card[0] === game.move.color) {
                         move.color = move.card[0];
                         if (isNumber(move.card[1]))
                             rotate(game.turn_order, 1);
@@ -318,7 +318,8 @@ const services = {
                             return on_err("which color should we switch to?");
                         move.balance = 4;
                         rotate(game.turn_order, 1);
-                    }
+                    } else
+                        return on_err("invalid move");
                 } else if (game.move.card === "wf") {
                     move.balance = 0;
                     if (game.move.balance !== 0) {
