@@ -12,7 +12,7 @@ import LeaveLobbyIcon from "@material-ui/icons/ExitToApp";
 import Tooltip from "@material-ui/core/es/Tooltip/Tooltip";
 import classNames from "classnames";
 import Badge from "@material-ui/core/Badge";
-import Typography from "@material-ui/core/Typography";
+import Avatar from "@material-ui/core/Avatar";
 
 const styles = theme => ({
     controls: {
@@ -27,16 +27,14 @@ const styles = theme => ({
     playerDisplay: {
         display: "flex",
         flexDirection: "column",
+        alignItems: "center",
     },
     innerControls: {
         display: "flex",
         flexDirection: "column",
     },
-    playerPaper: {
-        margin: "10px",
-        padding: "10px",
-        display: "flex",
-        justifyContent: "center",
+    avatar: {
+        margin: theme.spacing.unit,
     },
     myTurn: {
         backgroundColor: "#4caf50",
@@ -61,20 +59,19 @@ class Controls extends Component {
         return (
             <Paper className={classes.controls} elevation={1}>
                 <div className={classes.playerDisplay}>
+                    <div className={classes.avatar}/>
                     {
                         Object.keys(this.props.players).map((name, i) => {
                             let user = this.props.players[name];
                             if (user)
                                 return (
                                     <Tooltip key={`ctrl_ply_${i}`} title={name} placement={"left"}>
-                                        <Paper className={classNames({
-                                            [classes.playerPaper]: true,
+                                        <Avatar className={classNames({
+                                            [classes.avatar]: true,
                                             [classes.myTurn]: this.props.turn === user.name
                                         })}>
-                                            <Typography variant={"h6"}>
-                                                {user.name[0].toUpperCase()}
-                                            </Typography>
-                                        </Paper>
+                                            {user.name[0].toUpperCase()}
+                                        </Avatar>
                                     </Tooltip>
                                 );
                             return null;

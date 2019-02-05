@@ -10,15 +10,19 @@ import Button from "@material-ui/core/es/Button/Button";
 const styles = theme => ({
     b: {
         backgroundColor: "blue",
+        color:"black",
     },
     g: {
         backgroundColor: "green",
+        color:"black",
     },
     r: {
         backgroundColor: "red",
+        color:"black",
     },
     y: {
         backgroundColor: "yellow",
+        color:"black",
     },
 });
 
@@ -31,27 +35,25 @@ class ColorSelector extends Component {
                     Set card color
                 </DialogTitle>
                 <DialogContent>
-                    <Grid container spacing={0}>
+                    <Grid container spacing={16}>
                         <Grid item xs={6}>
                             <Button fullWidth className={classes.b} onClick={this.props.callback.bind(this, "b")}>
-                                Blue
+                                B
                             </Button>
                         </Grid>
                         <Grid item xs={6}>
                             <Button fullWidth className={classes.g} onClick={this.props.callback.bind(this, "g")}>
-                                Green
+                                G
                             </Button>
                         </Grid>
-                    </Grid>
-                    <Grid container spacing={0}>
                         <Grid item xs={6}>
                             <Button fullWidth className={classes.r} onClick={this.props.callback.bind(this, "r")}>
-                                Red
+                                R
                             </Button>
                         </Grid>
                         <Grid item xs={6}>
                             <Button fullWidth className={classes.y} onClick={this.props.callback.bind(this, "y")}>
-                                Yellow
+                                Y
                             </Button>
                         </Grid>
                     </Grid>
