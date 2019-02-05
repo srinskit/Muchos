@@ -10,7 +10,7 @@ import Snackbar from "@material-ui/core/Snackbar";
 import ErrorIcon from '@material-ui/icons/Error';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import InfoIcon from '@material-ui/icons/Info';
-import green from "@material-ui/core/es/colors/green";
+// import green from "@material-ui/core/es/colors/green";
 
 const styles = theme => ({
     Game: {
@@ -68,7 +68,7 @@ class Game extends Component {
         super(props);
         this.state = {
             commandLog: [],
-            basicSnack: "", errorSnack: "", successSnack: "",
+            infoSnack: "", errorSnack: "", successSnack: "",
             myHandOpen: false,
             myHand: [],
             topCard: null,
@@ -164,7 +164,7 @@ class Game extends Component {
                 break;
             case "invite":
                 copyToClipboard(this.state.lobbyCore.id);
-                this.setState({basicSnack: "Lobby ID copied to clipboard"});
+                this.setState({infoSnack: "Lobby ID copied to clipboard"});
                 break;
             case "leaveLobby":
                 this.leaveLobby();
@@ -249,6 +249,7 @@ class Game extends Component {
                     turn: mData["next_turn"],
                     balance: mData["next_turn"] === this.state.user.name ? (mData["move"].balance === 0 ? 1 : mData["move"].balance) : 0,
                     color: mData["next_turn"] === this.state.user.name ? mData["move"].color : null,
+                    infoSnack: mData["next_turn"] === this.state.user.name ? "Your turn" : "",
                 });
                 break;
             case "win":
@@ -334,7 +335,7 @@ class Game extends Component {
     }
 
     handleCloseSnack() {
-        this.setState({basicSnack: "", errorSnack: "", successSnack: ""});
+        this.setState({infoSnack: "", errorSnack: "", successSnack: ""});
     }
 
     onColorSelection(color) {
@@ -390,12 +391,12 @@ class Game extends Component {
                 </div>
                 <Snackbar
                     anchorOrigin={{vertical: "bottom", horizontal: "center"}}
-                    open={this.state.basicSnack.length !== 0}
+                    open={this.state.infoSnack.length !== 0}
                     onClose={this.handleCloseSnack.bind(this)}
                     className={classes.info}
                     message={
                         <span className={classes.message}>
-                            <InfoIcon className={classes.snackIcon}/>{this.state.basicSnack}
+                            <InfoIcon className={classes.snackIcon}/>{this.state.infoSnack}
                         </span>
                     }
                 />
