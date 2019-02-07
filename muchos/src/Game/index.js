@@ -98,10 +98,8 @@ class Game extends Component {
 
     onCommand(command) {
         if (command[0] !== "!" || command[1] !== " ") {
-            this.props.rach.pub(`/lobby/${this.state.lobbyCore.id}/chat`, {
-                user: this.state.user,
-                chat: command,
-            });
+            // Todo: Make chat a service call for security with current Rach
+            this.props.rach.pub(`/lobby/${this.state.lobbyCore.id}/chat/${this.state.user.name}`, command);
         } else {
             command = command.substr(2);
             switch (command) {
@@ -181,7 +179,7 @@ class Game extends Component {
     }
 
     onCardSelection(cardCode) {
-        let rach = this.props.rach, user = this.state.user;
+        let rach = this.props.rach;
         let move = {};
         if (cardCode === "draw") {
             move.type = cardCode;
@@ -193,7 +191,7 @@ class Game extends Component {
             if (cardCode[0] === "w")
                 move.color = this.state.myColor;
         }
-        rach.service_call("/game.move", [this.props.lobbyID, user, move],
+        rach.service_call("/game.move", [this.props.lobbyID, move],
             (result) => {
                 let res = result.result;
                 if (res.length === 0) {
@@ -225,9 +223,10 @@ class Game extends Component {
     }
 
     onChat(data) {
-        let user = data.data.user;
-        let chat = data.data.chat;
-        this.consoleLog(`__${user.name}__: ${chat}`);
+        let username = data["source_topic"];
+        username.substr(`/lobby/${this.state.lobbyCore.id}/chat/`.length);
+        let chat = data.data;
+        this.consoleLog(`__${username}__: ${chat}`);
     }
 
     onPrivate(data) {
@@ -258,9 +257,9 @@ class Game extends Component {
                 this.setState(prevState => ({
                     topCard: mData["move"].card,
                     turn: mData["next_turn"],
-                    balance: mData["next_turn"] === this.state.user.name ? (mData["move"].balance === 0 ? 1 : mData["move"].balance) : 0,
-                    color: mData["next_turn"] === this.state.user.name ? mData["move"].color : null,
-                    infoSnack: mData["next_turn"] === this.state.user.name ? "Your turn" : "",
+                    balance: mData["next_turn"] === prevState.user.name ? (mData["move"].balance === 0 ? 1 : mData["move"].balance) : 0,
+                    color: mData["next_turn"] === prevState.user.name ? mData["move"].color : null,
+                    infoSnack: mData["next_turn"] === prevState.user.name ? "Your turn" : "",
                     cardCount: {...prevState.cardCount, [mData["turn"]]: mData["cardCount"]},
                 }));
                 break;
@@ -289,12 +288,13 @@ class Game extends Component {
         rach.service_call("/lobby.join", [this.props.lobbyID, user],
             (result) => {
                 let lobby_core = result.result;
+                console.log(lobby_core, user);
                 this.consoleLog(`Joined lobby ${lobby_core.name}`);
                 rach.add_sub(`/lobby/${lobby_core.id}/player_event`, this.onPlayerJoin.bind(this), []);
                 rach.add_sub(`/lobby/${lobby_core.id}/chat`, this.onChat.bind(this), []);
                 rach.add_sub(`/game/${lobby_core.id}/private/${user.name}`, this.onPrivate.bind(this), []);
                 rach.add_sub(`/game/${lobby_core.id}/broadcast`, this.onBroadcast.bind(this), []);
-                rach.add_pub(`/lobby/${lobby_core.id}/chat`);
+                rach.add_pub(`/lobby/${lobby_core.id}/chat/${user.name}`);
                 this.setState({user: user, lobbyCore: lobby_core});
                 this.getPlayers((players) => {
                     if (players)
@@ -308,9 +308,9 @@ class Game extends Component {
     }
 
     leaveLobby() {
-        let rach = this.props.rach, lobbyId = this.props.lobbyID, user = this.state.user;
-        rach.service_call("/lobby.leave", [lobbyId, user],
-            (result) => {
+        let rach = this.props.rach, lobbyId = this.props.lobbyID;
+        rach.service_call("/lobby.leave", [lobbyId],
+            () => {
                 rach.rm_all_sub();
                 rach.rm_all_pub();
                 this.setState({user: null, lobbyCore: {}});

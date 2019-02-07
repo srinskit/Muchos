@@ -58,6 +58,7 @@ const services = {
                     id: id,
                     name: lobby_name,
                 },
+                users: {},
                 players: {},
                 game: {
                     started: false,
@@ -74,20 +75,25 @@ const services = {
             } catch (e) {
                 return on_err(e.message || "invalid lobby id");
             }
+            user.name = user.name.trim();
             if (lobby[lobby_id].players[user.name] != null)
                 return on_err("username taken");
+            lobby[lobby_id].users[client.public_id] = user;
             lobby[lobby_id].players[user.name] = user;
             rach.pub(`/lobby/${lobby_id}/player_event`, {event: "joined", user: user});
             on_result(lobby[lobby_id].core);
         }.bind(null, lobby),
     "/lobby.leave":
-        function (lobby, rach, client, on_err, on_result, lobby_id, user) {
+        function (lobby, rach, client, on_err, on_result, lobby_id) {
             try {
                 if (String(lobby_id).length === 0 || lobby[lobby_id] == null)
                     return on_err("invalid lobby id");
             } catch (e) {
-                return on_err(e.message || "invalid lobby id");
+                return on_err(e.message);
             }
+            let user = lobby[lobby_id].users[client.public_id];
+            if (user == null)
+                return on_err("not in this lobby");
             delete lobby[lobby_id].players[user.name];
             rach.pub(`/lobby/${lobby_id}/player_event`, {event: "left", user: user});
             on_result("done");
@@ -100,6 +106,9 @@ const services = {
             } catch (e) {
                 return on_err(e.message || "invalid lobby id");
             }
+            let user = lobby[lobby_id].users[client.public_id];
+            if (user == null)
+                return on_err("not in this lobby");
             on_result(lobby[lobby_id].players);
         }.bind(null, lobby),
     "/game.start":
@@ -110,6 +119,9 @@ const services = {
             } catch (e) {
                 return on_err(e.message || "invalid lobby id");
             }
+            let user = lobby[lobby_id].users[client.public_id];
+            if (user == null)
+                return on_err("not in this lobby");
             let game = lobby[lobby_id].game;
             if (game.started)
                 return on_err("game in progress");
@@ -160,13 +172,16 @@ const services = {
             on_result("done");
         }.bind(null, lobby),
     "/game.move":
-        function (lobby, rach, client, on_err, on_result, lobby_id, user, move) {
+        function (lobby, rach, client, on_err, on_result, lobby_id, move) {
             try {
                 if (String(lobby_id).length === 0 || lobby[lobby_id] == null)
                     return on_err("invalid lobby id");
             } catch (e) {
                 return on_err(e.message);
             }
+            let user = lobby[lobby_id].users[client.public_id];
+            if (user == null)
+                return on_err("not in this lobby");
             let game = lobby[lobby_id].game, ret = [];
             if (game.started !== true)
                 return on_err("game not started");
