@@ -60,11 +60,12 @@ class App extends Component {
         );
     }
 
-    createLobby(lobbyName) {
+    createLobby(lobbyName, cb) {
         if (lobbyName.length === 0) return;
         this.rach.service_call("/lobby.create", [lobbyName],
             (result) => {
                 this.setState({createdLobby: result.result});
+                cb(result.result);
             }, [],
             (err) => {
                 console.error(err);

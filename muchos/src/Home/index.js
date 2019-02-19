@@ -12,8 +12,7 @@ import Tooltip from "@material-ui/core/Tooltip";
 import Typography from "@material-ui/core/es/Typography/Typography";
 
 const styles = theme => ({
-    home: {
-    },
+    home: {},
     centeredDiv: {
         display: "flex",
         width: "100%",
@@ -63,6 +62,12 @@ class Home extends Component {
         this.setState({[name]: event.target.value});
     };
 
+    createLobby(lobbyName) {
+        this.props.createLobby(lobbyName, (lobby) => {
+            this.setState({lobbyID: lobby.id});
+        });
+    }
+
     render() {
         const {classes} = this.props;
         return (
@@ -84,7 +89,7 @@ class Home extends Component {
                         <Tooltip title="Create lobby">
                             <IconButton
                                 className={classes.button}
-                                onClick={this.props.createLobby.bind(this, this.state.lobbyName)}
+                                onClick={this.createLobby.bind(this, this.state.lobbyName)}
                             >
                                 <CreateIcon/>
                             </IconButton>
