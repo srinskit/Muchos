@@ -12,11 +12,18 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import DialogActions from "@material-ui/core/DialogActions";
 import CssBaseline from "@material-ui/core/CssBaseline";
 
-const theme = createMuiTheme({
-    palette: {
-        type: "dark",
-    },
-});
+const theme = {
+    "dark": createMuiTheme({
+        palette: {
+            type: "dark",
+        },
+    }),
+    "light": createMuiTheme({
+        palette: {
+            type: "light",
+        },
+    })
+};
 
 const styles = theme => ({
     App: {},
@@ -25,7 +32,11 @@ const styles = theme => ({
 class App extends Component {
     constructor(props) {
         super(props);
+        let savedTheme = localStorage.getItem("theme");
+        if (theme[savedTheme] == null)
+            savedTheme = "dark";
         this.state = {
+            theme: savedTheme,
             connectedToRach: false,
             createdLobby: null,
             joiningLobby: null,
@@ -45,10 +56,16 @@ class App extends Component {
         this.rach.stop();
     }
 
+    themeChanger(name) {
+        this.setState(prevState => ({theme: theme[name] != null ? name : prevState.theme}));
+        if (theme[name] != null)
+            localStorage.setItem("theme", name);
+    }
+
     render() {
         const {classes} = this.props;
         return (
-            <MuiThemeProvider theme={theme}>
+            <MuiThemeProvider theme={theme[this.state.theme]}>
                 <React.Fragment>
                     <CssBaseline/>
                     <div className={classes.App}>
@@ -90,6 +107,7 @@ class App extends Component {
                         rach={this.rach}
                         lobbyID={this.state.joiningLobbyID}
                         onClose={this.onLobbyLeave.bind(this)}
+                        themeChanger={this.themeChanger.bind(this)}
                     />
                 );
             default:

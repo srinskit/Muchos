@@ -135,6 +135,12 @@ class Game extends Component {
                 case "rm -rf /":
                     this.consoleLog(`Ya'll need Jeysus`);
                     break;
+                case "lights_on":
+                    this.props.themeChanger("light");
+                    break;
+                case "lights_off":
+                    this.props.themeChanger("dark");
+                    break;
                 default:
                     this.consoleLog(`Invalid command: _${command}_`);
                     break;
