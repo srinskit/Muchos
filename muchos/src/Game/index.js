@@ -67,7 +67,9 @@ class Game extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            commandLog: [],
+            consoleVisible: false,
+            consoleLog: [],
+            consoleBacklog: 0,
             infoSnack: "", errorSnack: "", successSnack: "",
             myHandOpen: false,
             myHand: [],
@@ -114,7 +116,7 @@ class Game extends Component {
                     this.leaveLobby();
                     break;
                 case "clear":
-                    this.setState({commandLog: []});
+                    this.setState({consoleLog: [], consoleBacklog: 0});
                     break;
                 case "players": {
                     this.getPlayers((players) => {
@@ -142,7 +144,8 @@ class Game extends Component {
 
     consoleLog(msg) {
         this.setState(prevState => ({
-            commandLog: [...prevState.commandLog, msg],
+            consoleLog: [...prevState.consoleLog, msg],
+            consoleBacklog: prevState.consoleVisible ? 0 : prevState.consoleBacklog + 1,
         }));
     }
 
@@ -172,6 +175,12 @@ class Game extends Component {
                 break;
             case "drawCard":
                 this.onCardSelection("draw");
+                break;
+            case "toggleChat":
+                this.setState(prevState => ({
+                    consoleVisible: !prevState.consoleVisible,
+                    consoleBacklog: 0,
+                }));
                 break;
             default:
                 break;
@@ -223,8 +232,7 @@ class Game extends Component {
     }
 
     onChat(data) {
-        let username = data["source_topic"];
-        username.substr(`/lobby/${this.state.lobbyCore.id}/chat/`.length);
+        let username = data["source_topic"].substr(`/lobby/${this.state.lobbyCore.id}/chat/`.length);
         let chat = data.data;
         this.consoleLog(`__${username}__: ${chat}`);
     }
@@ -358,11 +366,18 @@ class Game extends Component {
         const {classes} = this.props;
         return (
             <div className={classes.Game}>
-                <div className={classes.consoleWrapper}>
-                    <Console commandLog={this.state.commandLog} onCommand={this.onCommand.bind(this)}/>
-                </div>
+                {
+                    this.state.consoleVisible ?
+                        <div className={classes.consoleWrapper}>
+                            <Console
+                                consoleLog={this.state.consoleLog}
+                                onCommand={this.onCommand.bind(this)}
+                            />
+                        </div> : null
+                }
                 <div className={classes.controlsWrapper}>
                     <Controls
+                        consoleBacklog={this.state.consoleBacklog}
                         onControl={this.onControl.bind(this)}
                         players={this.state.lobbyPlayers}
                         turn={this.state.turn}

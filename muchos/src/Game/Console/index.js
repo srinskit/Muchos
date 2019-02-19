@@ -53,7 +53,7 @@ class Console extends Component {
             <div className={classes.Console}>
                 <ScrollableFeed className={classes.display}>
                     {
-                        this.props.commandLog.map((log, i) => {
+                        this.props.consoleLog.map((log, i) => {
                             return (
                                 <div key={`log${i}`} className={classes.log}>
                                     <Paper className={classes.paperWrap}><ReactMarkdown source={log}/></Paper>

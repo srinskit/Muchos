@@ -7,6 +7,7 @@ import VideoGameIcon from "@material-ui/icons/VideogameAsset";
 import DrawCardIcon from "@material-ui/icons/NoteAdd";
 import PassTurnIcon from "@material-ui/icons/SkipNext";
 import ColorSelectorIcon from "@material-ui/icons/ColorLens";
+import ChatIcon from "@material-ui/icons/Chat";
 import InviteIcon from "@material-ui/icons/Share";
 import LeaveLobbyIcon from "@material-ui/icons/ExitToApp";
 import Tooltip from "@material-ui/core/es/Tooltip/Tooltip";
@@ -25,6 +26,7 @@ const styles = theme => ({
         margin: theme.spacing.unit,
     },
     playerDisplay: {
+        margin: theme.spacing.unit,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -59,15 +61,17 @@ class Controls extends Component {
         return (
             <Paper className={classes.controls} elevation={1}>
                 <div className={classes.playerDisplay}>
-                    <div className={classes.avatar}/>
                     {
                         Object.keys(this.props.players).map((name, i) => {
                             let user = this.props.players[name];
                             if (user)
                                 return (
-                                    <Tooltip key={`ctrl_ply_${i}`} title={name} placement={"left"}>
-                                        <Badge className={classes.avatar}
-                                               badgeContent={this.props.cardCount[user.name] || 0} color="secondary">
+                                    <Tooltip className={classes.avatar}
+                                             key={`ctrl_ply_${i}`}
+                                             title={name}
+                                             placement={"left"}>
+                                        <Badge badgeContent={this.props.cardCount[user.name] || 0}
+                                               color="secondary">
                                             <Avatar className={classNames({
                                                 [classes.myTurn]: this.props.turn === user.name
                                             })}>
@@ -112,6 +116,13 @@ class Controls extends Component {
                     <Tooltip title="Pass turn" placement={"left"}>
                         <IconButton className={classes.margin} onClick={() => this.props.onControl("passTurn")}>
                             <PassTurnIcon fontSize="large"/>
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Chat" placement={"left"} onClick={() => this.props.onControl("toggleChat")}>
+                        <IconButton className={classes.margin}>
+                            <Badge badgeContent={this.props.consoleBacklog} color="secondary">
+                                <ChatIcon fontSize="large"/>
+                            </Badge>
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Invite" placement={"left"} onClick={() => this.props.onControl("invite")}>
