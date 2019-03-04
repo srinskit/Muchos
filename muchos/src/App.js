@@ -57,6 +57,8 @@ class App extends Component {
     }
 
     themeChanger(name) {
+        if (name == null)
+            name = localStorage.getItem("theme") === "dark" ? "light" : "dark";
         this.setState(prevState => ({theme: theme[name] != null ? name : prevState.theme}));
         if (theme[name] != null)
             localStorage.setItem("theme", name);

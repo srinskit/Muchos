@@ -5,6 +5,7 @@ import Console from "./Console";
 import Controls from "./Controls";
 import MyHand from "./MyHand";
 import AvatarMaker from "./AvatarMaker";
+import Dashboard from "./Dashboard";
 import Snackbar from "@material-ui/core/Snackbar";
 import SnackbarContent from "@material-ui/core/SnackbarContent";
 import InfoSnackIcon from '@material-ui/icons/Info';
@@ -73,6 +74,7 @@ class Game extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            dashboardVisible: false,
             consoleVisible: false,
             consoleLog: [],
             consoleBacklog: 0,
@@ -146,6 +148,9 @@ class Game extends Component {
                 case "lights_off":
                     this.props.themeChanger("dark");
                     break;
+                case "theme_toggle":
+                    this.props.themeChanger();
+                    break;
                 default:
                     this.consoleLog(`Invalid command: _${command}_`);
                     break;
@@ -186,6 +191,13 @@ class Game extends Component {
                     consoleVisible: !prevState.consoleVisible,
                     consoleBacklog: 0,
                 }));
+                break;
+            case "openDashboard":
+                this.setState({dashboardVisible: true});
+                break;
+            case "openHelp":
+                break;
+            case "reportBug":
                 break;
             default:
                 break;
@@ -301,7 +313,6 @@ class Game extends Component {
         rach.service_call("/lobby.join", [this.props.lobbyID, user],
             (result) => {
                 let lobby_core = result.result;
-                console.log(lobby_core, user);
                 this.consoleLog(`Joined lobby ${lobby_core.name}`);
                 rach.add_sub(`/lobby/${lobby_core.id}/player_event`, this.onPlayerJoin.bind(this), []);
                 rach.add_sub(`/lobby/${lobby_core.id}/chat`, this.onChat.bind(this), []);
@@ -363,6 +374,10 @@ class Game extends Component {
         this.setState({infoSnack: "", successSnack: "", warnSnack: "", errorSnack: "",});
     }
 
+    handleCloseDashboard() {
+        this.setState({dashboardVisible: false});
+    }
+
     render() {
         const {classes} = this.props;
         return (
@@ -375,6 +390,14 @@ class Game extends Component {
                                 onCommand={this.onCommand.bind(this)}
                             />
                         </div> : null
+                }
+                {
+                    this.state.dashboardVisible ?
+                        <Dashboard
+                            onClose={this.handleCloseDashboard.bind(this)}
+                            onCommand={this.onCommand.bind(this)}
+                            onControl={this.onControl.bind(this)}
+                        /> : null
                 }
                 <div className={classes.controlsWrapper}>
                     <Controls

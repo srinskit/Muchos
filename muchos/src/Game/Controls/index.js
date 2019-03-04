@@ -7,8 +7,7 @@ import VideoGameIcon from "@material-ui/icons/VideogameAsset";
 import DrawCardIcon from "@material-ui/icons/NoteAdd";
 import PassTurnIcon from "@material-ui/icons/SkipNext";
 import ChatIcon from "@material-ui/icons/Chat";
-import InviteIcon from "@material-ui/icons/Share";
-import LeaveLobbyIcon from "@material-ui/icons/ExitToApp";
+import DashboardIcon from "@material-ui/icons/Dashboard";
 import Tooltip from "@material-ui/core/es/Tooltip/Tooltip";
 import classNames from "classnames";
 import Badge from "@material-ui/core/Badge";
@@ -113,14 +112,9 @@ class Controls extends Component {
                             </Badge>
                         </IconButton>
                     </Tooltip>
-                    <Tooltip title="Invite" placement={"left"} onClick={() => this.props.onControl("invite")}>
+                    <Tooltip title="Dashboard" placement={"left"} onClick={() => this.props.onControl("openDashboard")}>
                         <IconButton className={classes.margin}>
-                            <InviteIcon fontSize="large"/>
-                        </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Leave lobby" placement={"left"} onClick={() => this.props.onControl("leaveLobby")}>
-                        <IconButton className={classes.margin}>
-                            <LeaveLobbyIcon fontSize="large"/>
+                            <DashboardIcon fontSize="large"/>
                         </IconButton>
                     </Tooltip>
                 </div>
