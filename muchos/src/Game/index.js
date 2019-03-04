@@ -7,10 +7,14 @@ import MyHand from "./MyHand";
 import ColorSelector from "./ColorSelector";
 import AvatarMaker from "./AvatarMaker";
 import Snackbar from "@material-ui/core/Snackbar";
-import ErrorIcon from '@material-ui/icons/Error';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import InfoIcon from '@material-ui/icons/Info';
-// import green from "@material-ui/core/es/colors/green";
+import SnackbarContent from "@material-ui/core/SnackbarContent";
+import InfoSnackIcon from '@material-ui/icons/Info';
+import SuccessSnackIcon from '@material-ui/icons/CheckCircle';
+import WarningSnackIcon from '@material-ui/icons/Warning';
+import ErrorSnackIcon from '@material-ui/icons/Error';
+import green from "@material-ui/core/es/colors/green";
+import amber from "@material-ui/core/es/colors/amber";
+import red from "@material-ui/core/es/colors/red";
 
 const styles = theme => ({
     Game: {
@@ -34,7 +38,7 @@ const styles = theme => ({
         padding: 0,
         height: "100%",
     },
-    message: {
+    snackMessage: {
         display: 'flex',
         alignItems: 'center',
     },
@@ -43,14 +47,17 @@ const styles = theme => ({
         opacity: 0.9,
         marginRight: theme.spacing.unit,
     },
-    success: {
-        // backgroundColor: green[600],
+    infoSnack: {
+        backgroundColor: theme.palette.primary.dark,
     },
-    error: {
-        // background: theme.palette.error.dark,
+    successSnack: {
+        backgroundColor: green[600],
     },
-    info: {
-        // background: theme.palette.primary.dark,
+    warnSnack: {
+        backgroundColor: amber[700],
+    },
+    errorSnack: {
+        backgroundColor: red[700],
     },
 });
 
@@ -70,7 +77,7 @@ class Game extends Component {
             consoleVisible: false,
             consoleLog: [],
             consoleBacklog: 0,
-            infoSnack: "", errorSnack: "", successSnack: "",
+            infoSnack: "", successSnack: "", warnSnack: "", errorSnack: "",
             myHandOpen: false,
             myHand: [],
             topCard: null,
@@ -226,7 +233,7 @@ class Game extends Component {
                 }
             }, [],
             (err) => {
-                this.setState({errorSnack: err.substr(15)});
+                this.setState({warnSnack: err.substr(15)});
             }, [],
         );
     }
@@ -273,7 +280,7 @@ class Game extends Component {
                     turn: mData["next_turn"],
                     balance: mData["next_turn"] === prevState.user.name ? (mData["move"].balance === 0 ? 1 : mData["move"].balance) : 0,
                     color: mData["next_turn"] === prevState.user.name ? mData["move"].color : null,
-                    infoSnack: mData["next_turn"] === prevState.user.name ? "Your turn" : "",
+                    successSnack: mData["next_turn"] === prevState.user.name ? "Your turn" : "",
                     cardCount: {...prevState.cardCount, [mData["turn"]]: mData["cardCount"]},
                 }));
                 break;
@@ -361,7 +368,7 @@ class Game extends Component {
     }
 
     handleCloseSnack() {
-        this.setState({infoSnack: "", errorSnack: "", successSnack: ""});
+        this.setState({infoSnack: "", successSnack: "", warnSnack: "", errorSnack: "",});
     }
 
     onColorSelection(color) {
@@ -426,36 +433,59 @@ class Game extends Component {
                 <Snackbar
                     anchorOrigin={{vertical: "bottom", horizontal: "center"}}
                     open={this.state.infoSnack.length !== 0}
+                    autoHideDuration={2000}
                     onClose={this.handleCloseSnack.bind(this)}
-                    className={classes.info}
-                    message={
-                        <span className={classes.message}>
-                            <InfoIcon className={classes.snackIcon}/>{this.state.infoSnack}
+                >
+                    <SnackbarContent
+                        className={classes.infoSnack}
+                        message={
+                            <span className={classes.snackMessage}>
+                            <InfoSnackIcon className={classes.snackIcon}/>{this.state.infoSnack}
                         </span>
-                    }
-                />
-                <Snackbar
-                    anchorOrigin={{vertical: "bottom", horizontal: "center"}}
-                    open={this.state.errorSnack.length !== 0}
-                    onClose={this.handleCloseSnack.bind(this)}
-                    className={classes.error}
-                    message={
-                        <span className={classes.message}>
-                            <ErrorIcon className={classes.snackIcon}/>{this.state.errorSnack}
-                        </span>
-                    }
-                />
+                        }
+                    />
+                </Snackbar>
                 <Snackbar
                     anchorOrigin={{vertical: "bottom", horizontal: "center"}}
                     open={this.state.successSnack.length !== 0}
                     onClose={this.handleCloseSnack.bind(this)}
-                    className={classes.success}
-                    message={
-                        <span className={classes.message}>
-                            <CheckCircleIcon className={classes.snackIcon}/>{this.state.successSnack}
+                >
+                    <SnackbarContent
+                        className={classes.successSnack}
+                        message={
+                            <span className={classes.snackMessage}>
+                            <SuccessSnackIcon className={classes.snackIcon}/>{this.state.successSnack}
                         </span>
-                    }
-                />
+                        }
+                    />
+                </Snackbar>
+                <Snackbar
+                    anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+                    open={this.state.warnSnack.length !== 0}
+                    onClose={this.handleCloseSnack.bind(this)}>
+                    <SnackbarContent
+                        className={classes.warnSnack}
+                        message={
+                            <span className={classes.snackMessage}>
+                            <WarningSnackIcon className={classes.snackIcon}/>{this.state.warnSnack}
+                        </span>
+                        }
+                    />
+                </Snackbar>
+                <Snackbar
+                    anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+                    open={this.state.errorSnack.length !== 0}
+                    onClose={this.handleCloseSnack.bind(this)}
+                >
+                    <SnackbarContent
+                        className={classes.errorSnack}
+                        message={
+                            <span className={classes.snackMessage}>
+                            <ErrorSnackIcon className={classes.snackIcon}/>{this.state.errorSnack}
+                        </span>
+                        }
+                    />
+                </Snackbar>
             </div>
         );
     }
