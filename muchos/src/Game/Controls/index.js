@@ -6,7 +6,6 @@ import IconButton from "@material-ui/core/IconButton";
 import VideoGameIcon from "@material-ui/icons/VideogameAsset";
 import DrawCardIcon from "@material-ui/icons/NoteAdd";
 import PassTurnIcon from "@material-ui/icons/SkipNext";
-import ColorSelectorIcon from "@material-ui/icons/ColorLens";
 import ChatIcon from "@material-ui/icons/Chat";
 import InviteIcon from "@material-ui/icons/Share";
 import LeaveLobbyIcon from "@material-ui/icons/ExitToApp";
@@ -85,7 +84,7 @@ class Controls extends Component {
                     }
                 </div>
                 <div className={classes.innerControls}>
-                    <Tooltip title="Hand" placement={"left"}>
+                    <Tooltip title="Your hand" placement={"left"}>
                         <IconButton
                             className={classNames({
                                 [classes[this.props.color || "b"]]: this.props.color != null,
@@ -93,17 +92,6 @@ class Controls extends Component {
                             })}
                             onClick={() => this.props.onControl("myHandOpen")}>
                             <VideoGameIcon fontSize="large"/>
-                        </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Set color" placement={"left"}>
-                        <IconButton
-                            className={classNames({
-                                [classes[this.props.myColor || "b"]]: this.props.myColor != null,
-                                [classes.margin]: true
-                            })}
-                            onClick={() => this.props.onControl("colorSelectorOpen")}
-                        >
-                            <ColorSelectorIcon fontSize="large"/>
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Draw card" placement={"left"}>

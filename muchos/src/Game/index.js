@@ -4,7 +4,6 @@ import {withStyles} from "@material-ui/core";
 import Console from "./Console";
 import Controls from "./Controls";
 import MyHand from "./MyHand";
-import ColorSelector from "./ColorSelector";
 import AvatarMaker from "./AvatarMaker";
 import Snackbar from "@material-ui/core/Snackbar";
 import SnackbarContent from "@material-ui/core/SnackbarContent";
@@ -84,7 +83,6 @@ class Game extends Component {
             user: null,
             lobbyCore: {},
             lobbyPlayers: {},
-            myColor: "b",
             turn: null, balance: 0, color: null, cardCount: {},
         };
     }
@@ -170,12 +168,6 @@ class Game extends Component {
             case "myHandClose":
                 this.setState({myHandOpen: false});
                 break;
-            case "colorSelectorOpen":
-                this.setState({myColor: null});
-                break;
-            case "colorSelectorClose":
-                this.setState({myColor: "b"});
-                break;
             case "invite":
                 copyToClipboard(this.state.lobbyCore.id);
                 this.setState({infoSnack: "Lobby ID copied to clipboard"});
@@ -200,7 +192,7 @@ class Game extends Component {
         }
     }
 
-    onCardSelection(cardCode) {
+    onCardSelection(cardCode, color) {
         let rach = this.props.rach;
         let move = {};
         if (cardCode === "draw") {
@@ -211,7 +203,7 @@ class Game extends Component {
             move.type = "card";
             move.card = cardCode;
             if (cardCode[0] === "w")
-                move.color = this.state.myColor;
+                move.color = color;
         }
         rach.service_call("/game.move", [this.props.lobbyID, move],
             (result) => {
@@ -371,10 +363,6 @@ class Game extends Component {
         this.setState({infoSnack: "", successSnack: "", warnSnack: "", errorSnack: "",});
     }
 
-    onColorSelection(color) {
-        this.setState({myColor: color});
-    }
-
     render() {
         const {classes} = this.props;
         return (
@@ -394,7 +382,6 @@ class Game extends Component {
                         onControl={this.onControl.bind(this)}
                         players={this.state.lobbyPlayers}
                         turn={this.state.turn}
-                        myColor={this.state.myColor}
                         color={this.state.color}
                         balance={this.state.balance}
                         cardCount={this.state.cardCount}
@@ -413,13 +400,6 @@ class Game extends Component {
                             hand={this.state.myHand}
                             onCardSelection={this.onCardSelection.bind(this)}
                             onClose={this.onControl.bind(this, "myHandClose")}
-                        /> : null
-                }
-                {
-                    this.state.myColor == null ?
-                        <ColorSelector
-                            callback={this.onColorSelection.bind(this)}
-                            onClose={this.onControl.bind(this, "colorSelectorClose")}
                         /> : null
                 }
                 <div className={classes.gameWrapper}>

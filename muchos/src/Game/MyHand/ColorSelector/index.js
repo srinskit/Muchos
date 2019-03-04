@@ -10,19 +10,19 @@ import Button from "@material-ui/core/es/Button/Button";
 const styles = theme => ({
     b: {
         backgroundColor: "blue",
-        color:"black",
+        color: "black",
     },
     g: {
         backgroundColor: "green",
-        color:"black",
+        color: "black",
     },
     r: {
         backgroundColor: "red",
-        color:"black",
+        color: "black",
     },
     y: {
         backgroundColor: "yellow",
-        color:"black",
+        color: "black",
     },
 });
 
@@ -32,7 +32,7 @@ class ColorSelector extends Component {
         return (
             <Dialog onClose={this.props.onClose.bind(this)} open={true}>
                 <DialogTitle>
-                    Set card color
+                    Set game color
                 </DialogTitle>
                 <DialogContent>
                     <Grid container spacing={16}>
