@@ -15,10 +15,23 @@ import ErrorSnackIcon from '@material-ui/icons/Error';
 import green from "@material-ui/core/es/colors/green";
 import amber from "@material-ui/core/es/colors/amber";
 import red from "@material-ui/core/es/colors/red";
+import ItemsCarousel from 'react-items-carousel';
+import Card from "@material-ui/core/Card";
+import CardActionArea from "@material-ui/core/CardActionArea";
+import CardMedia from "@material-ui/core/CardMedia";
+import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
 const styles = theme => ({
     Game: {
         height: "100%",
+    },
+    card: {
+        width: 130,
+    },
+    media: {
+        height: 182,
+        width: 130,
     },
     consoleWrapper: {
         position: "absolute",
@@ -28,8 +41,11 @@ const styles = theme => ({
         height: "100%",
     },
     gameWrapper: {
-        marginLeft: "20%",
         padding: "50px",
+    },
+    slideWrapper: {
+        margin: "auto",
+        width: 200,
     },
     controlsWrapper: {
         position: "absolute",
@@ -74,6 +90,7 @@ class Game extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            gameStarted: false,
             dashboardVisible: false,
             consoleVisible: false,
             consoleLog: [],
@@ -81,6 +98,8 @@ class Game extends Component {
             infoSnack: "", successSnack: "", warnSnack: "", errorSnack: "",
             myHandOpen: false,
             myHand: [],
+            playedCards: [],
+            activeItemIndex: 0,
             topCard: null,
             user: null,
             lobbyCore: {},
@@ -113,7 +132,7 @@ class Game extends Component {
             command = command.substr(2);
             switch (command) {
                 case "help": {
-                    let help = '';
+                    let help = "";
                     for (let key in this.helpDef)
                         help += `_${key}_: ${this.helpDef[key]}\n\n`;
                     this.consoleLog(help);
@@ -127,7 +146,7 @@ class Game extends Component {
                     break;
                 case "players": {
                     this.getPlayers((players) => {
-                        let text = '';
+                        let text = "";
                         for (let key in players)
                             if (players.hasOwnProperty(key))
                                 text += players[key].name + "\n\n";
@@ -267,6 +286,7 @@ class Game extends Component {
                         ...prevState,
                         myHand: mData.hand,
                         cardCount: cardCount,
+                        gameStarted: true,
                     }
                 });
                 break;
@@ -275,21 +295,35 @@ class Game extends Component {
         }
     }
 
+    changeActiveItem = (activeItemIndex) => this.setState({activeItemIndex});
+
     onBroadcast(data) {
         let mData = data.data;
         switch (mData.event) {
             case "move":
-                this.setState(prevState => ({
-                    topCard: mData["move"].card,
-                    turn: mData["next_turn"],
-                    balance: mData["next_turn"] === prevState.user.name ? (mData["move"].balance === 0 ? 1 : mData["move"].balance) : 0,
-                    color: mData["next_turn"] === prevState.user.name ? mData["move"].color : null,
-                    successSnack: mData["next_turn"] === prevState.user.name ? "Your turn" : "",
-                    cardCount: {...prevState.cardCount, [mData["turn"]]: mData["cardCount"]},
-                }));
+                if (mData["move"].type === "card")
+                    this.setState(prevState => ({
+                        topCard: mData["move"].card,
+                        turn: mData["next_turn"],
+                        balance: mData["next_turn"] === prevState.user.name ? (mData["move"].balance === 0 ? 1 : mData["move"].balance) : 0,
+                        color: mData["next_turn"] === prevState.user.name ? mData["move"].color : null,
+                        successSnack: mData["next_turn"] === prevState.user.name ? "Your turn" : "",
+                        cardCount: {...prevState.cardCount, [mData["turn"]]: mData["cardCount"]},
+                        playedCards: prevState.playedCards.concat([mData["move"].card]),
+                        activeItemIndex: prevState.playedCards.length,
+                    }));
+                else
+                    this.setState(prevState => ({
+                        turn: mData["next_turn"],
+                        balance: mData["next_turn"] === prevState.user.name ? (mData["move"].balance === 0 ? 1 : mData["move"].balance) : 0,
+                        color: mData["next_turn"] === prevState.user.name ? mData["move"].color : null,
+                        successSnack: mData["next_turn"] === prevState.user.name ? "Your turn" : "",
+                        cardCount: {...prevState.cardCount, [mData["turn"]]: mData["cardCount"]},
+                    }));
                 break;
             case "win":
                 this.consoleLog(`${mData["player"]} won place ${mData["place"]}`);
+                this.setState({gameStarted: false});
                 break;
             default:
         }
@@ -408,6 +442,7 @@ class Game extends Component {
                         color={this.state.color}
                         balance={this.state.balance}
                         cardCount={this.state.cardCount}
+                        gameStarted={this.state.gameStarted}
                     />
                 </div>
                 {
@@ -426,13 +461,43 @@ class Game extends Component {
                         /> : null
                 }
                 <div className={classes.gameWrapper}>
-                    {
-                        this.state.topCard !== null ?
-                            <div>
-                                <img src={Game.getAsset(this.state.topCard)} alt={this.state.topCard}/>
-                            </div> : null
-                    }
+                    <div className={classes.slideWrapper}>
+                        {
+                            this.state.topCard !== null ?
+                                <ItemsCarousel
+                                    numberOfCards={1}
+                                    gutter={6}
+                                    showSlither={true}
+                                    firstAndLastGutter={true}
+
+                                    requestToChangeActive={this.changeActiveItem}
+                                    activeItemIndex={this.state.activeItemIndex}
+                                    activePosition={"center"}
+
+                                    chevronWidth={32}
+                                    rightChevron={<ChevronRightIcon/>}
+                                    leftChevron={<ChevronLeftIcon/>}
+                                    outsideChevron={true}
+                                >
+                                    {
+                                        this.state.playedCards.map((cardCode, i) => {
+                                            return (
+                                                <Card key={i} className={classes.card}>
+                                                    <CardActionArea>
+                                                        <CardMedia
+                                                            className={classes.media}
+                                                            image={Game.getAsset(cardCode)}
+                                                        />
+                                                    </CardActionArea>
+                                                </Card>
+                                            );
+                                        })
+                                    }
+                                </ItemsCarousel> : null
+                        }
+                    </div>
                 </div>
+
                 <Snackbar
                     anchorOrigin={{vertical: "bottom", horizontal: "center"}}
                     open={this.state.infoSnack.length !== 0}
