@@ -188,6 +188,7 @@ const services = {
             if (game.turn_order[0] !== user.name)
                 return on_err("not your turn");
             // Game logic
+            let type = move.type;
             if (move.type === "card") {
                 if (!game.hand[user.name].includes(move.card))
                     return on_err("you do not have that card");
@@ -400,7 +401,7 @@ const services = {
             game.move = move;
             rach.pub(`/game/${lobby_id}/broadcast`, {
                 event: "move",
-                move: game.move,
+                move: {...game.move, type: type},
                 turn: user.name,
                 cardCount: game.hand[user.name].length,
                 next_turn: game.turn_order[0],
