@@ -447,7 +447,9 @@ class Game extends Component {
                 </div>
                 {
                     this.state.user == null ?
-                        <AvatarMaker avatarLoader={this.avatarLoader.bind(this)}
+                        <AvatarMaker
+                            avatarLoader={this.avatarLoader.bind(this)}
+                            onClose={this.props.onClose.bind(this)}
                         /> : null
                 }
                 {

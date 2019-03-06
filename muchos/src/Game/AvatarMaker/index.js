@@ -33,13 +33,15 @@ class AvatarMaker extends Component {
     };
 
     handleClick() {
-        this.props.avatarLoader({name: this.state.name});
+        if (this.state.name.length > 0)
+            this.props.avatarLoader({name: this.state.name});
     }
 
     render() {
         const {classes} = this.props;
         return (
-            <Dialog open={true}
+            <Dialog
+                open={true}
             >
                 <DialogTitle>
                     Create an avatar
@@ -56,7 +58,13 @@ class AvatarMaker extends Component {
                                 autoFocus
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid item xs={6}>
+                            <Button onClick={this.props.onClose.bind(this)}
+                                    variant="contained" color="secondary" className={classes.button} fullWidth>
+                                Cancel
+                            </Button>
+                        </Grid>
+                        <Grid item xs={6}>
                             <Button onClick={this.handleClick.bind(this)}
                                     variant="contained" color="primary" className={classes.button} fullWidth>
                                 Play

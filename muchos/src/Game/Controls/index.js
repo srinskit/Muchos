@@ -83,28 +83,31 @@ class Controls extends Component {
                     }
                 </div>
                 <div className={classes.innerControls}>
-                    <Tooltip title="Your hand" placement={"left"}>
-                        <IconButton
-                            className={classNames({
-                                [classes[this.props.color || "b"]]: this.props.color != null,
-                                [classes.margin]: true
-                            })}
-                            onClick={() => this.props.onControl("myHandOpen")}>
-                            <VideoGameIcon fontSize="large"/>
-                        </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Draw card" placement={"left"}>
-                        <IconButton className={classes.margin} onClick={() => this.props.onControl("drawCard")}>
-                            <Badge badgeContent={this.props.balance} color="secondary">
-                                <DrawCardIcon fontSize="large"/>
-                            </Badge>
-                        </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Pass turn" placement={"left"}>
-                        <IconButton className={classes.margin} onClick={() => this.props.onControl("passTurn")}>
-                            <PassTurnIcon fontSize="large"/>
-                        </IconButton>
-                    </Tooltip>
+                    {this.props.gameStarted ?
+                        <div className={classes.innerControls}>
+                            <Tooltip title="Your hand" placement={"left"}>
+                                <IconButton
+                                    className={classNames({
+                                        [classes[this.props.color || "b"]]: this.props.color != null,
+                                        [classes.margin]: true
+                                    })}
+                                    onClick={() => this.props.onControl("myHandOpen")}>
+                                    <VideoGameIcon fontSize="large"/>
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Draw card" placement={"left"}>
+                                <IconButton className={classes.margin} onClick={() => this.props.onControl("drawCard")}>
+                                    <Badge badgeContent={this.props.balance} color="secondary">
+                                        <DrawCardIcon fontSize="large"/>
+                                    </Badge>
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Pass turn" placement={"left"}>
+                                <IconButton className={classes.margin} onClick={() => this.props.onControl("passTurn")}>
+                                    <PassTurnIcon fontSize="large"/>
+                                </IconButton>
+                            </Tooltip>
+                        </div> : null}
                     <Tooltip title="Chat" placement={"left"} onClick={() => this.props.onControl("toggleChat")}>
                         <IconButton className={classes.margin}>
                             <Badge badgeContent={this.props.consoleBacklog} color="secondary">

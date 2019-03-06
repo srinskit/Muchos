@@ -10,7 +10,6 @@ import CopyIcon from "@material-ui/icons/FileCopy";
 import PlayIcon from "@material-ui/icons/VideogameAsset";
 import Tooltip from "@material-ui/core/Tooltip";
 import Typography from "@material-ui/core/es/Typography/Typography";
-
 const styles = theme => ({
     home: {},
     centeredDiv: {
@@ -78,6 +77,11 @@ class Home extends Component {
                     </Typography>
                 </div>
                 <div className={classes.centeredDiv}>
+                    <Typography variant="h6">
+                        Create a lobby
+                    </Typography>
+                </div>
+                <div className={classes.centeredDiv}>
                     <Paper className={classes.paperWrap} elevation={1}>
                         <InputBase
                             className={classes.inputWrap}
@@ -116,6 +120,11 @@ class Home extends Component {
                         </div>
                         : null
                 }
+                <div className={classes.centeredDiv}>
+                    <Typography variant="h6">
+                        Join a lobby
+                    </Typography>
+                </div>
                 <div className={classes.centeredDiv}>
                     <Paper className={classes.paperWrap} elevation={1}>
                         <InputBase
