@@ -4,7 +4,7 @@ import {withStyles} from "@material-ui/core";
 import {MuiThemeProvider, createMuiTheme} from "@material-ui/core/styles";
 import Home from "./Home";
 import Game from "./Game";
-import Rach from "./RachJs/RachJs";
+import Rach from "rachjs";
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";

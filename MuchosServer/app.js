@@ -3,7 +3,6 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const indexRouter = require("./routes/index");
-const https = require('https');
 
 const app = express();
 
@@ -55,7 +54,7 @@ function dfQuery(username, query, callback) {
     });
 }
 
-const RachServer = require("./modules/RachServer/RachServer");
+const RachServer = require("rach-server");
 const uuid_v1 = require("uuid/v1");
 
 let lobby = {};
@@ -514,7 +513,7 @@ function isNumber(x) {
     return !isNaN(Number(x));
 }
 
-const rachServer = new RachServer(actions, services, console);
+const rachServer = new RachServer(actions, services, console, 8080);
 rachServer.start();
 
 module.exports = app;
