@@ -130,7 +130,22 @@ class Game extends Component {
             this.props.rach.pub(`/lobby/${this.state.lobbyCore.id}/chat/${this.state.user.name}`, command);
         } else {
             command = command.substr(2);
-            switch (command) {
+            command = command.split(" ");
+            let cmd = command[0];
+            command.shift();
+            switch (cmd) {
+                case "bot": {
+                    this.consoleLog(`__${this.state.user.name}__: ${command.join(" ")}`);
+                    this.props.rach.service_call("/bot.chat", [command.join(" ")],
+                        (result) => {
+                            this.consoleLog(`_BOT_: ${result.result}`);
+                        }, [],
+                        (err) => {
+                            this.setState({warnSnack: err.substr(15)});
+                        }, [],
+                    );
+                    break;
+                }
                 case "help": {
                     let help = "";
                     for (let key in this.helpDef)
@@ -171,7 +186,7 @@ class Game extends Component {
                     this.props.themeChanger();
                     break;
                 default:
-                    this.consoleLog(`Invalid command: _${command}_`);
+                    this.consoleLog(`Invalid command`);
                     break;
             }
         }

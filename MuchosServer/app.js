@@ -1,9 +1,9 @@
-const createError = require("http-errors");
 const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const indexRouter = require("./routes/index");
+const https = require('https');
 
 const app = express();
 
@@ -18,22 +18,42 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
-
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-    next(createError(404));
+app.post("/dfWebHook", function (req, res) {
+    if (req.body.queryResult.intent.name === process.env.DIALOG_FLOW_INTENT_NAME) {
+        console.log(req.body.queryResult.parameters.color[0]);
+    } else {
+        res.json({fulfillmentText: req.body.queryResult.fulfillmentText});
+    }
 });
 
 // error handler
-app.use(function (err, req, res) {
-    // set locals, only providing error in development
-    res.locals.message = err.message;
-    res.locals.error = req.app.get("env") === "development" ? err : {};
-
-    // render the error page
-    res.status(err.status || 500);
-    res.render("error");
+app.use(function (req, res) {
+    res.status(404);
+    res.end();
 });
+
+const dialogFlow = require('dialogflow');
+const fs = require("fs");
+const dfConfig = {
+    credentials: JSON.parse(fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS)),
+};
+const sessionClient = new dialogFlow.SessionsClient(dfConfig);
+
+function dfQuery(username, query, callback) {
+    const sessionPath = sessionClient.sessionPath(dfConfig.credentials["project_id"], username);
+    const request = {
+        session: sessionPath,
+        queryInput: {
+            text: {
+                text: query,
+                languageCode: "en",
+            },
+        },
+    };
+    sessionClient.detectIntent(request).then(responses => {
+        callback(responses[0].queryResult.fulfillmentText);
+    });
+}
 
 const RachServer = require("./modules/RachServer/RachServer");
 const uuid_v1 = require("uuid/v1");
@@ -427,6 +447,13 @@ const services = {
             }
             return on_result(ret);
         }.bind(null, lobby),
+    "/bot.chat":
+        function (lobby, rach, client, on_err, on_result, query) {
+            dfQuery("test", query, (result) => {
+                return on_result(result);
+            });
+        }.bind(null, lobby),
+
 };
 const actions = {
     authTest: function () {
