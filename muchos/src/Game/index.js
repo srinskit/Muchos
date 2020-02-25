@@ -134,18 +134,6 @@ class Game extends Component {
             let cmd = command[0];
             command.shift();
             switch (cmd) {
-                case "bot": {
-                    this.consoleLog(`__${this.state.user.name}__: ${command.join(" ")}`);
-                    this.props.rach.service_call("/bot.chat", [command.join(" ")],
-                        (result) => {
-                            this.consoleLog(`_BOT_: ${result.result}`);
-                        }, [],
-                        (err) => {
-                            this.setState({warnSnack: err.substr(15)});
-                        }, [],
-                    );
-                    break;
-                }
                 case "help": {
                     let help = "";
                     for (let key in this.helpDef)

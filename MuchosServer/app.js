@@ -9,41 +9,10 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 
-app.post("/dfWebHook", function (req, res) {
-    if (req.body.queryResult.intent.name === process.env.DIALOG_FLOW_INTENT_NAME) {
-        console.log(req.body.queryResult.parameters.color[0]);
-    } else {
-        res.json({fulfillmentText: req.body.queryResult.fulfillmentText});
-    }
-});
-
 // error handler
 app.use(function (req, res) {
     res.sendStatus(404);
 });
-
-const dialogFlow = require('dialogflow');
-const fs = require("fs");
-const dfConfig = {
-    credentials: JSON.parse(fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS)),
-};
-const sessionClient = new dialogFlow.SessionsClient(dfConfig);
-
-function dfQuery(username, query, callback) {
-    const sessionPath = sessionClient.sessionPath(dfConfig.credentials["project_id"], username);
-    const request = {
-        session: sessionPath,
-        queryInput: {
-            text: {
-                text: query,
-                languageCode: "en",
-            },
-        },
-    };
-    sessionClient.detectIntent(request).then(responses => {
-        callback(responses[0].queryResult.fulfillmentText);
-    });
-}
 
 const RachServer = require("rach-server");
 const uuid_v1 = require("uuid/v1");
@@ -437,13 +406,6 @@ const services = {
             }
             return on_result(ret);
         }.bind(null, lobby),
-    "/bot.chat":
-        function (lobby, rach, client, on_err, on_result, query) {
-            dfQuery("test", query, (result) => {
-                return on_result(result);
-            });
-        }.bind(null, lobby),
-
 };
 const actions = {
     authTest: function () {
